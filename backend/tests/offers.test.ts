@@ -13,6 +13,9 @@ beforeEach(() => {
 const listOffersAs = (kind: UserKind, id: number) =>
   request(app).get("/offers").set("Authorization", tokenFor(kind, id));
 
+const listOffersAsPeriod = (kind: UserKind, id: number, period: string) =>
+  request(app).get(`/offers?period=${period}`).set("Authorization", tokenFor(kind, id));
+
 const offerIds = (body: { id: number }[]): number[] => body.map((offer) => offer.id);
 
 describe("GET /offers : accès", () => {
@@ -95,5 +98,70 @@ describe("GET /offers : visibilité selon le profil", () => {
     expect(Object.keys(response.body[0]).sort()).toEqual(
       ["academicYear", "companyShortName", "id", "period", "status", "title"],
     );
+  });
+});
+
+describe("GET /offers : filtre par période", () => {
+  it("conserve toutes les offres quand period est absent", async () => {
+    const response = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(10);
+  });
+
+  it.each(["P1", "P2", "OTHER"])("filtre les offres sur la période %s", async (period) => {
+    const response = await listOffersAsPeriod("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, period);
+
+    expect(response.status).toBe(200);
+    expect(response.body.length).toBeGreaterThan(0);
+    expect(response.body.every((offer: { period: string }) => offer.period === period)).toBe(true);
+  });
+
+  it("combine la période avec les offres publiées visibles par un étudiant", async () => {
+    const response = await listOffersAsPeriod("STUDENT", STUDENT.LUCAS_DUPONT, "P2");
+
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([
+      OFFER.INTERNAL_CHATBOT,
+      OFFER.DATA_QUALITY,
+      OFFER.FLEET_APP,
+      OFFER.BILLING_API,
+    ]);
+    expect(
+      response.body.every(
+        (offer: { period: string; status: string }) =>
+          offer.period === "P2" && offer.status === "PUBLISHED",
+      ),
+    ).toBe(true);
+  });
+
+  it("combine la période avec les offres propres à un déposant", async () => {
+    const response = await listOffersAsPeriod("CONTACT", CONTACT.MARC_LEJEUNE, "P1");
+
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([OFFER.PDF_REPORTS]);
+  });
+
+  it("conserve le refus pour un contact sans droit, même avec une période", async () => {
+    const response = await listOffersAsPeriod("CONTACT", CONTACT.NADIA_CHERIF, "P1");
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("FORBIDDEN");
+  });
+
+  it.each(["", "P3", "p1"])("refuse la période invalide %j", async (period) => {
+    const response = await listOffersAsPeriod("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, period);
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("INVALID_QUERY");
+  });
+
+  it("refuse un paramètre period répété", async () => {
+    const response = await request(app)
+      .get("/offers?period=P1&period=P2")
+      .set("Authorization", tokenFor("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ));
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("INVALID_QUERY");
   });
 });

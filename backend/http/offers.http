@@ -41,3 +41,15 @@ Authorization: {{depositor.response.body.token}}
 ### Erreur 403 : promotrice et signataire
 GET http://localhost:3000/offers
 Authorization: {{promoter.response.body.token}}
+
+### Offres de période P1 vues par l'administrateur
+GET http://localhost:3000/offers?period=P1
+Authorization: {{admin.response.body.token}}
+
+### Offres de période P2 vues par l'administrateur
+GET http://localhost:3000/offers?period=P2
+Authorization: {{admin.response.body.token}}
+
+### Offres hors P1/P2 vues par l'administrateur
+GET http://localhost:3000/offers?period=OTHER
+Authorization: {{admin.response.body.token}}
