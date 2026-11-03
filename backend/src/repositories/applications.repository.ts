@@ -47,6 +47,11 @@ export const createApplicationsRepository = (db: Db) => {
     WHERE a.student_id = ?
     ORDER BY a.applied_at DESC, a.id DESC
   `);
+  const withdraw = db.prepare<[number, number]>(`
+    UPDATE applications
+    SET status = 'WITHDRAWN'
+    WHERE id = ? AND student_id = ? AND status = 'IN_PROGRESS'
+  `);
 
   return {
     findOfferStatus: (offerId: number): OfferStatus | undefined =>
@@ -61,7 +66,10 @@ export const createApplicationsRepository = (db: Db) => {
       findAllForStudent.all(studentId),
     findById: (applicationId: number): ApplicationDbo | undefined =>
       findById.get(applicationId),
-
+    withdraw: (applicationId: number, studentId: number): ApplicationDbo | undefined => {
+      const result = withdraw.run(applicationId, studentId);
+      return result.changes === 0 ? undefined : findById.get(applicationId);
+    },
   };
 };
 

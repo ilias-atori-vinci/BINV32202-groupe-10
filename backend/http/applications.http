@@ -26,3 +26,6 @@ Content-Type: application/json
 GET http://localhost:3000/applications
 Authorization: {{student.response.body.token}}
 
+### Retirer une candidature en cours
+DELETE http://localhost:3000/applications/7
+Authorization: {{student.response.body.token}}

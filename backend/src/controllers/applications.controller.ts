@@ -31,6 +31,14 @@ const parseBody = (body: unknown): { offerId: number; message: string | null } =
   return { offerId, message: normalizedMessage === "" ? null : normalizedMessage };
 };
 
+const parseApplicationId = (value: string): number => {
+  const id = Number(value);
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new HttpError(400, "INVALID_PARAM", "L'identifiant de candidature est invalide");
+  }
+  return id;
+};
+
 export const createApplicationsRouter = (applicationsService: ApplicationsService) => {
   const router = Router();
 
@@ -46,6 +54,14 @@ export const createApplicationsRouter = (applicationsService: ApplicationsServic
       message,
     );
     res.status(201).json(toApplicationDto(application));
+  });
+
+  router.delete("/:id", (req, res) => {
+    const application = applicationsService.withdrawApplication(
+      getCurrentUser(req),
+      parseApplicationId(req.params.id),
+    );
+    res.json(toApplicationDto(application));
   });
 
   return router;

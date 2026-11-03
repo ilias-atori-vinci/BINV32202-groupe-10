@@ -209,6 +209,20 @@ peut pas dépasser 2 000 caractères.
 - `401` `UNAUTHENTICATED` : session absente ou invalide.
 - `403` `FORBIDDEN` : l'utilisateur connecté n'est pas un étudiant.
 
+## DELETE /applications/:id
+
+Retire logiquement une candidature appartenant à l'étudiant connecté. La ligne
+reste conservée et son statut devient `WITHDRAWN`.
+
+### Réponses
+
+- `200` : la candidature mise à jour, avec le statut `WITHDRAWN`.
+- `400` `INVALID_PARAM` : identifiant invalide.
+- `401` `UNAUTHENTICATED` : session absente ou invalide.
+- `403` `FORBIDDEN` : l'utilisateur n'est pas un étudiant ou la candidature
+  appartient à un autre étudiant.
+- `404` `NOT_FOUND` : candidature inexistante.
+- `409` `APPLICATION_NOT_WITHDRAWABLE` : la candidature n'est pas `IN_PROGRESS`.
 - `404` `NOT_FOUND` : offre inexistante.
 - `409` `OFFER_NOT_PUBLISHED` : l'offre n'a pas le statut `PUBLISHED`.
 - `409` `APPLICATION_EXISTS` : l'étudiant possède déjà une candidature non retirée

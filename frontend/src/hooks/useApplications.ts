@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ApplicationListItem } from "../models/application.ts";
-import { getApplications } from "../services/applications.service.ts";
+import { getApplications, withdrawApplication as withdrawApplicationRequest } from "../services/applications.service.ts";
 import { isUnauthorized } from "../utils/api.ts";
 
 export const useApplications = (token: string, onUnauthorized: () => void) => {
@@ -36,10 +36,25 @@ export const useApplications = (token: string, onUnauthorized: () => void) => {
   }, [request, onUnauthorized]);
 
   const currentResult = result?.request === request ? result : null;
+  const withdrawApplication = useCallback(async (applicationId: number) => {
+    const updated = await withdrawApplicationRequest(request.token, applicationId);
+    setResult((previous) => {
+      if (previous?.request !== request) return previous;
+      return {
+        ...previous,
+        applications: previous.applications.map((application) =>
+          application.id === updated.id
+            ? { ...application, status: updated.status }
+            : application,
+        ),
+      };
+    });
+  }, [request]);
 
   return {
     applications: currentResult?.applications ?? [],
     isLoading: currentResult === null,
     error: currentResult?.error ?? null,
+    withdrawApplication,
   };
 };

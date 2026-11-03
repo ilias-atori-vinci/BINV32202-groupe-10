@@ -19,6 +19,62 @@ const applyAs = (kind: UserKind, id: number, body: object) =>
 const listAs = (kind: UserKind, id: number) =>
   request(app).get("/applications").set("Authorization", tokenFor(kind, id));
 
+const withdrawAs = (kind: UserKind, id: number, applicationId: number) =>
+  request(app)
+    .delete(`/applications/${applicationId}`)
+    .set("Authorization", tokenFor(kind, id));
+
+describe("DELETE /applications/:id", () => {
+  it("retire la candidature en cours de l'étudiant connecté", async () => {
+    const response = await withdrawAs("STUDENT", STUDENT.LUCAS_DUPONT, 1);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({ id: 1, status: "WITHDRAWN" });
+
+    const listResponse = await listAs("STUDENT", STUDENT.LUCAS_DUPONT);
+    expect(listResponse.body).toEqual([
+      expect.objectContaining({ id: 1, status: "WITHDRAWN" }),
+    ]);
+  });
+
+  it("refuse le retrait d'une candidature appartenant à un autre étudiant", async () => {
+    const response = await withdrawAs("STUDENT", STUDENT.LUCAS_DUPONT, 2);
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("FORBIDDEN");
+  });
+
+  it.each([
+    ["retenue", STUDENT.MATEUSZ_KOWALSKI, 3],
+    ["non retenue", STUDENT.LEA_MERTENS, 4],
+    ["déjà retirée", STUDENT.INES_HADDAD, 5],
+  ])("refuse le retrait d'une candidature %s", async (_label, studentId, applicationId) => {
+    const response = await withdrawAs("STUDENT", studentId, applicationId);
+
+    expect(response.status).toBe(409);
+    expect(response.body.error.code).toBe("APPLICATION_NOT_WITHDRAWABLE");
+  });
+
+  it("refuse les rôles autres qu'étudiant", async () => {
+    const response = await withdrawAs("ADMIN", 1, 1);
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe("FORBIDDEN");
+  });
+
+  it("autorise une nouvelle candidature après le retrait", async () => {
+    const withdrawal = await withdrawAs("STUDENT", STUDENT.LUCAS_DUPONT, 1);
+    expect(withdrawal.status).toBe(200);
+
+    const application = await applyAs("STUDENT", STUDENT.LUCAS_DUPONT, {
+      offerId: OFFER.FLEET_APP,
+    });
+    expect(application.status).toBe(201);
+    expect(application.body.status).toBe("IN_PROGRESS");
+    expect(application.body.id).not.toBe(1);
+  });
+});
+
 describe("GET /applications", () => {
   it("retourne les candidatures de l'étudiant connecté avec les informations de l'offre", async () => {
     const response = await listAs("STUDENT", STUDENT.INES_HADDAD);

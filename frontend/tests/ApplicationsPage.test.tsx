@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import ApplicationsPage from "../src/pages/ApplicationsPage.tsx";
 import { stubFetch } from "./helpers/fetchMock.ts";
@@ -66,4 +66,31 @@ describe("ApplicationsPage", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("statut 500");
   });
 
+  it("retire une candidature en cours et conserve le statut affiché", async () => {
+    const fetchMock = stubFetch({
+      "/api/applications/1": () =>
+        Response.json({
+          id: 1,
+          offerId: 1,
+          message: null,
+          status: "WITHDRAWN",
+          appliedAt: "2026-10-02 18:10:00",
+        }),
+      "/api/applications": () => Response.json([applications[0]]),
+    });
+
+    render(<ApplicationsPage token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText("En cours");
+    fireEvent.click(screen.getByRole("button", { name: "Retirer" }));
+
+    expect(await screen.findByText("Retirée")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Retirer" })).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "/api/applications/1",
+      expect.objectContaining({
+        method: "DELETE",
+        headers: { Authorization: "jeton" },
+      }),
+    );
+  });
 });
