@@ -106,6 +106,7 @@ describe("OffersPage : fiabilité du filtre", () => {
       "/api/offers?period=OTHER": () => Response.json([offers[1]]),
       "/api/offers": () => Response.json(offers),
     });
+
     render(<OffersPage user={user} token="jeton" onUnauthorized={vi.fn()} />);
     expect(await screen.findByText("2 offres")).toBeInTheDocument();
     const select = screen.getByRole("combobox", { name: "Période" });
@@ -180,5 +181,85 @@ describe("OffersPage : fiabilité du filtre", () => {
     expect(screen.queryByText(offers[0]!.title)).not.toBeInTheDocument();
     await act(async () => { resolveNext(Response.json([])); });
     expect(await screen.findByText("Aucune offre à afficher.")).toBeInTheDocument();
+  });
+});
+
+describe("OffersPage : candidature", () => {
+  const publishedOffer = {
+    id: 1,
+    title: "Application React de gestion de flotte",
+    companyShortName: "Lumen Digital",
+    academicYear: "2026-2027",
+    period: "P2" as const,
+    status: "PUBLISHED" as const,
+  };
+
+  it("permet à un étudiant d'envoyer une candidature avec un message", async () => {
+    const fetchMock = stubFetch({
+      "/api/offers": () => Response.json([publishedOffer]),
+      "/api/applications": () =>
+        Response.json(
+          {
+            id: 7,
+            offerId: 1,
+            message: "Mon message",
+            status: "IN_PROGRESS",
+            appliedAt: "2026-11-03 10:20:00",
+          },
+          { status: 201 },
+        ),
+    });
+
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText(publishedOffer.title);
+    fireEvent.click(screen.getByRole("button", { name: "Candidater" }));
+    fireEvent.change(screen.getByLabelText("Message (facultatif)"), {
+      target: { value: "Mon message" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer ma candidature" }));
+
+    await screen.findByText("Votre candidature a été envoyée.");
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "/api/applications",
+      expect.objectContaining({
+        method: "POST",
+        headers: {
+          Authorization: "jeton",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ offerId: 1, message: "Mon message" }),
+      }),
+    );
+    expect(screen.getByRole("button", { name: "Candidature envoyée" })).toBeDisabled();
+  });
+
+  it("permet l'envoi sans message et n'affiche pas l'action aux contacts", async () => {
+    stubFetch({
+      "/api/offers": () => Response.json([publishedOffer]),
+      "/api/applications": () =>
+        Response.json(
+          {
+            id: 8,
+            offerId: 1,
+            message: null,
+            status: "IN_PROGRESS",
+            appliedAt: "2026-11-03 10:20:00",
+          },
+          { status: 201 },
+        ),
+    });
+
+    const { unmount } = render(
+      <OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />,
+    );
+    await screen.findByText(publishedOffer.title);
+    fireEvent.click(screen.getByRole("button", { name: "Candidater" }));
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer ma candidature" }));
+    await screen.findByText("Votre candidature a été envoyée.");
+    unmount();
+
+    render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText(publishedOffer.title);
+    expect(screen.queryByRole("button", { name: "Candidater" })).not.toBeInTheDocument();
   });
 });
