@@ -22,3 +22,7 @@ Content-Type: application/json
 
 { "offerId": 3 }
 
+### Consulter ses candidatures
+GET http://localhost:3000/applications
+Authorization: {{student.response.body.token}}
+

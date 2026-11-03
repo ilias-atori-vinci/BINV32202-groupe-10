@@ -214,3 +214,35 @@ peut pas dépasser 2 000 caractères.
 - `409` `APPLICATION_EXISTS` : l'étudiant possède déjà une candidature non retirée
   pour cette offre.
 
+## GET /applications
+
+Retourne les candidatures de l'étudiant connecté, avec les informations utiles
+des offres correspondantes. Aucun identifiant d'étudiant n'est accepté en
+paramètre : le filtrage utilise l'étudiant de la session.
+
+### Réponses
+
+- `200` :
+
+```json
+[
+  {
+    "id": 1,
+    "offerId": 1,
+    "offerTitle": "Application React de gestion de flotte",
+    "companyShortName": "Lumen Digital",
+    "academicYear": "2026-2027",
+    "period": "P2",
+    "message": "Le développement React m'intéresse particulièrement.",
+    "status": "IN_PROGRESS",
+    "appliedAt": "2026-10-02 18:10:00"
+  }
+]
+```
+
+Le tableau est vide si l'étudiant n'a aucune candidature. Les statuts sont
+`IN_PROGRESS`, `SELECTED`, `REJECTED` ou `WITHDRAWN` ; leurs libellés français
+sont affichés par le frontend.
+
+- `401` `UNAUTHENTICATED` : session absente ou invalide.
+- `403` `FORBIDDEN` : l'utilisateur connecté n'est pas un étudiant.

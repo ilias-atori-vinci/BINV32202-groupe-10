@@ -34,6 +34,10 @@ const parseBody = (body: unknown): { offerId: number; message: string | null } =
 export const createApplicationsRouter = (applicationsService: ApplicationsService) => {
   const router = Router();
 
+  router.get("/", (req, res) => {
+    res.json(applicationsService.listApplications(getCurrentUser(req)));
+  });
+
   router.post("/", (req, res) => {
     const { offerId, message } = parseBody(req.body);
     const application = applicationsService.createApplication(

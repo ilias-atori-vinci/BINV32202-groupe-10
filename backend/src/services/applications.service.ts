@@ -1,5 +1,5 @@
-import { toApplication } from "../mappers/application.mapper.ts";
-import type { Application } from "../models/application.ts";
+import { toApplication, toApplicationListDto } from "../mappers/application.mapper.ts";
+import type { Application, ApplicationListDto } from "../models/application.ts";
 import type { User } from "../models/user.ts";
 import type { ApplicationsRepository } from "../repositories/applications.repository.ts";
 import { HttpError } from "../utils/httpError.ts";
@@ -12,6 +12,10 @@ const assertStudent = (viewer: User): void => {
 };
 
 export const createApplicationsService = (repository: ApplicationsRepository) => ({
+  listApplications: (viewer: User): ApplicationListDto[] => {
+    assertStudent(viewer);
+    return repository.findAllForStudent(viewer.id).map(toApplicationListDto);
+  },
   createApplication: (
     viewer: User,
     offerId: number,
