@@ -208,6 +208,10 @@ peut pas dépasser 2 000 caractères.
 - `400` `INVALID_BODY` : corps invalide, `offerId` non positif ou message trop long.
 - `401` `UNAUTHENTICATED` : session absente ou invalide.
 - `403` `FORBIDDEN` : l'utilisateur connecté n'est pas un étudiant.
+- `404` `NOT_FOUND` : offre inexistante.
+- `409` `OFFER_NOT_PUBLISHED` : l'offre n'a pas le statut `PUBLISHED`.
+- `409` `APPLICATION_EXISTS` : l'étudiant possède déjà une candidature non retirée
+  pour cette offre.
 
 ## DELETE /applications/:id
 
@@ -223,10 +227,6 @@ reste conservée et son statut devient `WITHDRAWN`.
   appartient à un autre étudiant.
 - `404` `NOT_FOUND` : candidature inexistante.
 - `409` `APPLICATION_NOT_WITHDRAWABLE` : la candidature n'est pas `IN_PROGRESS`.
-- `404` `NOT_FOUND` : offre inexistante.
-- `409` `OFFER_NOT_PUBLISHED` : l'offre n'a pas le statut `PUBLISHED`.
-- `409` `APPLICATION_EXISTS` : l'étudiant possède déjà une candidature non retirée
-  pour cette offre.
 
 ## GET /applications
 
