@@ -4,9 +4,11 @@ import StatusBadge from "./StatusBadge.tsx";
 
 interface OfferTableProps {
   offers: Offer[];
+  onApply?: (offer: Offer) => void;
+  appliedOfferIds?: ReadonlySet<number>;
 }
 
-const OfferTable = ({ offers }: OfferTableProps) => (
+const OfferTable = ({ offers, onApply, appliedOfferIds = new Set() }: OfferTableProps) => (
   <div className="table-wrapper">
     <table className="data-table">
       <thead>
@@ -16,6 +18,9 @@ const OfferTable = ({ offers }: OfferTableProps) => (
           <th scope="col">Année</th>
           <th scope="col">Période</th>
           <th scope="col">Statut</th>
+          {onApply && offers.some((offer) => offer.status === "PUBLISHED") && (
+            <th scope="col">Action</th>
+          )}
         </tr>
       </thead>
       <tbody>
@@ -31,6 +36,18 @@ const OfferTable = ({ offers }: OfferTableProps) => (
                 tone={OFFER_STATUS_TONES[offer.status]}
               />
             </td>
+            {onApply && offer.status === "PUBLISHED" && (
+              <td>
+                <button
+                  className="button button-primary"
+                  type="button"
+                  disabled={appliedOfferIds.has(offer.id)}
+                  onClick={() => onApply(offer)}
+                >
+                  {appliedOfferIds.has(offer.id) ? "Candidature envoyée" : "Candidater"}
+                </button>
+              </td>
+            )}
           </tr>
         ))}
       </tbody>

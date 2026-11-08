@@ -171,3 +171,92 @@ récente à la plus ancienne, puis de la plus récente à la plus ancienne.
 - `401` `UNAUTHENTICATED` : session absente ou invalide.
 - `403` `FORBIDDEN` : contact seulement promoteur ou signataire.
 - `400` `INVALID_QUERY` : `period` est répété ou ne vaut pas `P1`, `P2` ou `OTHER`.
+
+## POST /applications
+
+Permet à l'étudiant connecté de candidater à une offre publiée.
+
+### Requête
+
+- Header `Authorization` obligatoire
+- Body JSON :
+
+```json
+{
+  "offerId": 1,
+  "message": "Le développement React m'intéresse particulièrement."
+}
+```
+
+`message` est facultatif. Il est nettoyé des espaces en début et en fin et ne
+peut pas dépasser 2 000 caractères.
+
+### Réponses
+
+- `201` :
+
+```json
+{
+  "id": 7,
+  "offerId": 1,
+  "message": "Le développement React m'intéresse particulièrement.",
+  "status": "IN_PROGRESS",
+  "appliedAt": "2026-11-03 10:20:00"
+}
+```
+
+- `400` `INVALID_BODY` : corps invalide, `offerId` non positif ou message trop long.
+- `401` `UNAUTHENTICATED` : session absente ou invalide.
+- `403` `FORBIDDEN` : l'utilisateur connecté n'est pas un étudiant.
+- `404` `NOT_FOUND` : offre inexistante.
+- `409` `OFFER_NOT_PUBLISHED` : l'offre n'a pas le statut `PUBLISHED`.
+- `409` `APPLICATION_EXISTS` : l'étudiant possède déjà une candidature non retirée
+  pour cette offre.
+
+## DELETE /applications/:id
+
+Retire logiquement une candidature appartenant à l'étudiant connecté. La ligne
+reste conservée et son statut devient `WITHDRAWN`.
+
+### Réponses
+
+- `200` : la candidature mise à jour, avec le statut `WITHDRAWN`.
+- `400` `INVALID_PARAM` : identifiant invalide.
+- `401` `UNAUTHENTICATED` : session absente ou invalide.
+- `403` `FORBIDDEN` : l'utilisateur n'est pas un étudiant ou la candidature
+  appartient à un autre étudiant.
+- `404` `NOT_FOUND` : candidature inexistante.
+- `409` `APPLICATION_NOT_WITHDRAWABLE` : la candidature n'est pas `IN_PROGRESS`.
+
+## GET /applications
+
+Retourne les candidatures de l'étudiant connecté, avec les informations utiles
+des offres correspondantes. Aucun identifiant d'étudiant n'est accepté en
+paramètre : le filtrage utilise l'étudiant de la session.
+
+### Réponses
+
+- `200` :
+
+```json
+[
+  {
+    "id": 1,
+    "offerId": 1,
+    "offerTitle": "Application React de gestion de flotte",
+    "companyShortName": "Lumen Digital",
+    "academicYear": "2026-2027",
+    "period": "P2",
+    "message": "Le développement React m'intéresse particulièrement.",
+    "status": "IN_PROGRESS",
+    "appliedAt": "2026-10-02 18:10:00"
+  }
+]
+```
+
+Le tableau est vide si l'étudiant n'a aucune candidature. Les statuts sont
+`IN_PROGRESS`, `SELECTED`, `REJECTED` ou `WITHDRAWN` ; leurs libellés français
+sont affichés par le frontend.
+
+- `401` `UNAUTHENTICATED` : session absente ou invalide.
+- `403` `FORBIDDEN` : l'utilisateur connecté n'est pas un étudiant.
