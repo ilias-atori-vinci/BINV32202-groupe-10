@@ -11,8 +11,9 @@ Les choix métier appliqués et leur justification sont les suivants :
 
 - **Une seule candidature non retirée par étudiant et par offre.** Cela évite
   les envois en double et conserve une situation claire pour chaque couple
-  étudiant/offre. Un contrôle métier et un index unique partiel en base
-  appliquent cette règle, y compris pour les statuts retenu et non retenu.
+  étudiant/offre. L'index unique partiel applique cette règle, y compris pour les statuts
+  retenu et non retenu. Le serveur renvoie une erreur métier si l'insertion
+  est ignorée à cause de cet index.
 - **Une nouvelle candidature après retrait est autorisée**, si l'offre est
   toujours publiée. Le retrait permet ainsi à l'étudiant de changer d'avis
   sans bloquer définitivement une nouvelle démarche.
@@ -196,8 +197,8 @@ seulement lorsqu'elle est `IN_PROGRESS`.
    [applications.controller.ts](../backend/src/controllers/applications.controller.ts)
    valide le JSON, puis
    [applications.service.ts](../backend/src/services/applications.service.ts)
-   vérifie la session, le rôle étudiant, l'offre publiée et l'absence de
-   candidature active en doublon. L'identifiant étudiant utilisé est celui de la session ; un éventuel
+   vérifie le rôle étudiant et la publication de l'offre. Le serveur traduit
+   un conflit d'unicité en refus de doublon. L'identifiant étudiant utilisé est celui de la session ; un éventuel
    `studentId` fourni dans le corps est ignoré.
 4. **Base** —
    [applications.repository.ts](../backend/src/repositories/applications.repository.ts)
