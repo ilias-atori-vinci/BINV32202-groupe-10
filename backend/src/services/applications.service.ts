@@ -30,10 +30,6 @@ export const createApplicationsService = (repository: ApplicationsRepository) =>
     if (offerStatus !== "PUBLISHED") {
       throw new HttpError(409, "OFFER_NOT_PUBLISHED", "Cette offre n'est pas publiée");
     }
-    if (repository.findActive(offerId, viewer.id) !== undefined) {
-      throw new HttpError(409, "APPLICATION_EXISTS", "Vous avez déjà candidaté à cette offre");
-    }
-
     const application = repository.create({ offerId, studentId: viewer.id, message });
     if (application === undefined) {
       throw new HttpError(409, "APPLICATION_EXISTS", "Vous avez déjà candidaté à cette offre");
