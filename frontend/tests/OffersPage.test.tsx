@@ -234,7 +234,7 @@ describe("OffersPage : candidature", () => {
   });
 
   it("permet l'envoi sans message et n'affiche pas l'action aux contacts", async () => {
-    stubFetch({
+    const fetchMock = stubFetch({
       "/api/offers": () => Response.json([publishedOffer]),
       "/api/applications": () =>
         Response.json(
@@ -256,6 +256,13 @@ describe("OffersPage : candidature", () => {
     fireEvent.click(screen.getByRole("button", { name: "Candidater" }));
     fireEvent.click(screen.getByRole("button", { name: "Envoyer ma candidature" }));
     await screen.findByText("Votre candidature a été envoyée.");
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "/api/applications",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ offerId: 1, message: "" }),
+      }),
+    );
     unmount();
 
     render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);

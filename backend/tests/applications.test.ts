@@ -42,24 +42,38 @@ describe("DELETE /applications/:id", () => {
 
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe("FORBIDDEN");
+
+    const ownerList = await listAs("STUDENT", STUDENT.INES_HADDAD);
+    expect(ownerList.body).toEqual([
+      expect.objectContaining({ id: 2, status: "IN_PROGRESS" }),
+      expect.objectContaining({ id: 5, status: "WITHDRAWN" }),
+    ]);
   });
 
   it.each([
-    ["retenue", STUDENT.MATEUSZ_KOWALSKI, 3],
-    ["non retenue", STUDENT.LEA_MERTENS, 4],
-    ["déjà retirée", STUDENT.INES_HADDAD, 5],
-  ])("refuse le retrait d'une candidature %s", async (_label, studentId, applicationId) => {
+    ["retenue", STUDENT.MATEUSZ_KOWALSKI, 3, "SELECTED"],
+    ["non retenue", STUDENT.LEA_MERTENS, 4, "REJECTED"],
+    ["déjà retirée", STUDENT.INES_HADDAD, 5, "WITHDRAWN"],
+  ])("refuse le retrait d'une candidature %s", async (_label, studentId, applicationId, status) => {
     const response = await withdrawAs("STUDENT", studentId, applicationId);
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("APPLICATION_NOT_WITHDRAWABLE");
+
+    const listResponse = await listAs("STUDENT", studentId);
+    expect(listResponse.body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: applicationId, status })]),
+    );
   });
 
   it("refuse les rôles autres qu'étudiant", async () => {
     const response = await withdrawAs("ADMIN", 1, 1);
+    const contactResponse = await withdrawAs("CONTACT", 2, 1);
 
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe("FORBIDDEN");
+    expect(contactResponse.status).toBe(403);
+    expect(contactResponse.body.error.code).toBe("FORBIDDEN");
   });
 
   it("autorise une nouvelle candidature après le retrait", async () => {
@@ -72,6 +86,14 @@ describe("DELETE /applications/:id", () => {
     expect(application.status).toBe(201);
     expect(application.body.status).toBe("IN_PROGRESS");
     expect(application.body.id).not.toBe(1);
+
+    const listResponse = await listAs("STUDENT", STUDENT.LUCAS_DUPONT);
+    expect(listResponse.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 1, status: "WITHDRAWN" }),
+        expect.objectContaining({ id: application.body.id, status: "IN_PROGRESS" }),
+      ]),
+    );
   });
 });
 
@@ -151,6 +173,17 @@ describe("POST /applications", () => {
       status: "IN_PROGRESS",
     });
     expect(response.body).not.toHaveProperty("studentId");
+
+    const listResponse = await listAs("STUDENT", STUDENT.DMYTRO_KOVALENKO);
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body).toEqual([
+      expect.objectContaining({
+        id: response.body.id,
+        offerId: OFFER.FLEET_APP,
+        message: "Je souhaite rejoindre votre équipe.",
+        status: "IN_PROGRESS",
+      }),
+    ]);
   });
 
   it("crée une candidature sans message", async () => {
@@ -170,6 +203,9 @@ describe("POST /applications", () => {
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("OFFER_NOT_PUBLISHED");
+
+    const listResponse = await listAs("STUDENT", STUDENT.DMYTRO_KOVALENKO);
+    expect(listResponse.body).toEqual([]);
   });
 
   it("refuse une candidature active en doublon", async () => {
