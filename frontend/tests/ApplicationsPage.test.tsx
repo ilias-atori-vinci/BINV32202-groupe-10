@@ -26,6 +26,28 @@ const applications = [
     status: "WITHDRAWN" as const,
     appliedAt: "2026-09-30 10:30:00",
   },
+  {
+    id: 3,
+    offerId: 4,
+    offerTitle: "Migration cloud",
+    companyShortName: "Datavia",
+    academicYear: "2026-2027",
+    period: "P1" as const,
+    message: null,
+    status: "SELECTED" as const,
+    appliedAt: "2026-09-28 10:30:00",
+  },
+  {
+    id: 4,
+    offerId: 5,
+    offerTitle: "Tests end-to-end",
+    companyShortName: "Brikk",
+    academicYear: "2026-2027",
+    period: "OTHER" as const,
+    message: null,
+    status: "REJECTED" as const,
+    appliedAt: "2026-09-27 10:30:00",
+  },
 ];
 
 describe("ApplicationsPage", () => {
@@ -38,7 +60,28 @@ describe("ApplicationsPage", () => {
     expect(screen.getByText("Lumen Digital")).toBeInTheDocument();
     expect(screen.getByText("En cours")).toBeInTheDocument();
     expect(screen.getByText("Retirée")).toBeInTheDocument();
-    expect(screen.getByText("2 candidatures")).toBeInTheDocument();
+    expect(screen.getByText("Retenue")).toBeInTheDocument();
+    expect(screen.getByText("Non retenue")).toBeInTheDocument();
+    expect(screen.getByText("4 candidatures")).toBeInTheDocument();
+  });
+
+  it("masque les candidatures précédentes au changement de session", async () => {
+    const fetchMock = stubFetch({ "/api/applications": () => Response.json([applications[1]]) });
+    fetchMock.mockResolvedValueOnce(Response.json([applications[0]]));
+    const onUnauthorized = vi.fn();
+
+    const { rerender } = render(
+      <ApplicationsPage token="premier" onUnauthorized={onUnauthorized} />,
+    );
+    expect(await screen.findByText("Application React de gestion de flotte")).toBeInTheDocument();
+
+    rerender(<ApplicationsPage token="second" onUnauthorized={onUnauthorized} />);
+    expect(screen.queryByText("Application React de gestion de flotte")).not.toBeInTheDocument();
+    expect(await screen.findByText("API REST de facturation")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "/api/applications",
+      expect.objectContaining({ headers: { Authorization: "second" } }),
+    );
   });
 
   it("affiche un état vide", async () => {

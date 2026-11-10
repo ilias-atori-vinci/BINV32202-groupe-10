@@ -169,6 +169,19 @@ const insertInternship = (overrides: Record<string, unknown> = {}) =>
     });
 
 describe("candidatures et stages", () => {
+  it("refuse deux candidatures actives pour le même étudiant et la même offre", () => {
+    const insertApplication = () =>
+      db
+        .prepare(
+          "INSERT INTO applications (offer_id, student_id, message) VALUES (?, ?, ?)",
+        )
+        .run(OFFER.FLEET_APP, STUDENT.DMYTRO_KOVALENKO, null);
+
+    insertApplication();
+
+    expect(insertApplication).toThrow(/UNIQUE/);
+  });
+
   it("accepte un stage valide, avec ou sans promoteur", () => {
     expect(() => insertInternship()).not.toThrow();
     expect(() => insertInternship({ promoter_contact_id: null })).not.toThrow();
