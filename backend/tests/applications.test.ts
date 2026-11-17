@@ -194,6 +194,17 @@ describe("POST /applications", () => {
     expect(response.status).toBe(201);
     expect(response.body.message).toBeNull();
     expect(response.body.status).toBe("IN_PROGRESS");
+
+    const listResponse = await listAs("STUDENT", STUDENT.LOUIS_CLAES);
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body).toEqual([
+      expect.objectContaining({
+        id: response.body.id,
+        offerId: OFFER.BILLING_API,
+        message: null,
+        status: "IN_PROGRESS",
+      }),
+    ]);
   });
 
   it.each([
@@ -237,7 +248,9 @@ describe("POST /applications", () => {
     const contactResponse = await applyAs("CONTACT", 2, { offerId: OFFER.FLEET_APP });
 
     expect(adminResponse.status).toBe(403);
+    expect(adminResponse.body.error.code).toBe("FORBIDDEN");
     expect(contactResponse.status).toBe(403);
+    expect(contactResponse.body.error.code).toBe("FORBIDDEN");
   });
 
   it("refuse un message de plus de 2 000 caractères", async () => {

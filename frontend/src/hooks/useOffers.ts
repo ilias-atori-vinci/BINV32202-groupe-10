@@ -10,11 +10,11 @@ import { isUnauthorized } from "../utils/api.ts";
 export const useOffers = (
   token: string,
   period: PeriodCode | undefined,
+  title: string,
   onUnauthorized: () => void,
 ) => {
-  // Chaque changement de session ou de période identifie un nouveau chargement,
-  // même lorsqu'on revient à une période déjà consultée.
-  const request = useMemo(() => ({ token, period }), [token, period]);
+  // Chaque changement de session, période ou titre identifie un nouveau chargement.
+  const request = useMemo(() => ({ token, period, title }), [token, period, title]);
   const [result, setResult] = useState<{
     request: typeof request;
     offers: Offer[];
@@ -24,7 +24,7 @@ export const useOffers = (
   useEffect(() => {
     const controller = new AbortController();
 
-    getOffers(request.token, request.period, controller.signal)
+    getOffers(request.token, request.period, request.title, controller.signal)
       .then((offers) => {
         if (!controller.signal.aborted) setResult({ request, offers, error: null });
       })

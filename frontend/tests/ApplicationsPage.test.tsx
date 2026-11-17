@@ -136,4 +136,26 @@ describe("ApplicationsPage", () => {
       }),
     );
   });
+
+  it("affiche l'erreur si le retrait est refusé et conserve le statut", async () => {
+    const fetchMock = stubFetch({
+      "/api/applications/1": () => new Response(null, { status: 409 }),
+      "/api/applications": () => Response.json([applications[0]]),
+    });
+
+    render(<ApplicationsPage token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText("En cours");
+    fireEvent.click(screen.getByRole("button", { name: "Retirer" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("statut 409");
+    expect(screen.getByText("En cours")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retirer" })).toBeEnabled();
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      "/api/applications/1",
+      expect.objectContaining({
+        method: "DELETE",
+        headers: { Authorization: "jeton" },
+      }),
+    );
+  });
 });

@@ -145,8 +145,10 @@ récente à la plus ancienne, puis de la plus récente à la plus ancienne.
 ### Requête
 
 - Header `Authorization` obligatoire
+- Paramètre facultatif `title` : texte recherché dans le titre, sans tenir compte de la
+  casse. Les espaces au début et à la fin sont ignorés ; une valeur vide est ignorée.
 - Paramètre facultatif `period` : `P1`, `P2` ou `OTHER`. En son absence, toutes les
-  périodes sont retournées.
+  périodes sont retournées. Les deux paramètres peuvent être combinés.
 
 ### Réponses
 
@@ -170,7 +172,8 @@ récente à la plus ancienne, puis de la plus récente à la plus ancienne.
 
 - `401` `UNAUTHENTICATED` : session absente ou invalide.
 - `403` `FORBIDDEN` : contact seulement promoteur ou signataire.
-- `400` `INVALID_QUERY` : `period` est répété ou ne vaut pas `P1`, `P2` ou `OTHER`.
+- `400` `INVALID_QUERY` : `title` est répété, dépasse 100 caractères, ou `period` est
+  répété ou ne vaut pas `P1`, `P2` ou `OTHER`.
 
 ## POST /applications
 
