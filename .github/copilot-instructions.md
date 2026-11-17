@@ -76,8 +76,11 @@ pages -> hooks -> services/utils -> models
 ```
 
 - `App.tsx` calls `useAuth` once and passes the session and logout behavior to pages.
-- Services call the API and validate JSON with hand-written type guards.
-- Hooks expose display-ready state and handle unauthorized responses.
+- Services call the API through `readJson`: check the HTTP status before parsing JSON,
+  then validate the response with a hand-written type guard.
+- Hooks expose display-ready state, own asynchronous actions, and handle unauthorized
+  responses. Keep a stable `onUnauthorized` callback and ignore results from previous
+  sessions or aborted requests. See `useOfferApplication` for application submission.
 - Pages assemble route-level UI; reusable components do not know about routes.
 - Vite proxies `/api/...` to the backend and removes the `/api` prefix.
 
@@ -110,3 +113,16 @@ routes or response/error shapes.
   assemble in tests.
 - The API port is configured with `API_PORT`, not `PORT`. Demo authentication is controlled
   by `DEMO_AUTH_ENABLED` and must not be enabled in production.
+
+## Review and functional verification
+
+- Use React form `onSubmit`, associate each input with a label, retain HTML validation,
+  and show loading and error states. Server validation remains mandatory.
+- Verify ownership on the backend: for example, withdrawing another student's
+  application must return 403 and leave the owner's data unchanged.
+- Test assertions must prove the business outcome, not only the HTTP status.
+  After creation, reread the persisted record; after refusal, verify no unwanted change.
+- Distinguish automated tests, browser checks by the agent, and the student's own
+  observations in reports. Never invent a conversation, manual result, or past TDD cycle.
+- `.github/workflows/check.yml` runs the existing checks on pushes and pull requests.
+  A local success does not establish that the remote workflow has run successfully.

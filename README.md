@@ -66,6 +66,7 @@ Toutes les commandes se lancent à la racine.
 |---|---|
 | [docs/cdc_gesta_developpement.md](docs/cdc_gesta_developpement.md) | Cahier des charges métier de Gesta |
 | [docs/architecture.md](docs/architecture.md) | Organisation du code et parcours existants |
+| [docs/suivi-relecture.md](docs/suivi-relecture.md) | Corrections des phases 1 à 4, limites et vérifications restantes |
 | [docs/seed.md](docs/seed.md) | Données de démonstration et utilisateurs fictifs |
 | [backend/API.md](backend/API.md) | Routes de l'API, réponses et erreurs |
 
@@ -95,7 +96,9 @@ Les outils ont été choisis pour rester simples et lisibles :
   - le déposant voit les offres qu'il a déposées ;
   - un contact sans rôle de déposant n'y a pas accès (403).
 - **Candidatures** : un étudiant peut candidater à une offre publiée, consulter
-  ses candidatures et retirer celles qui sont en cours.
+  ses candidatures et retirer celles qui sont en cours. La liste des offres relit
+  les candidatures existantes et désactive un nouvel envoi tant qu'une candidature
+  non retirée existe pour l'offre.
 - Schéma complet de la base : entreprises, contacts et rôles, étudiants, administrateurs,
   années et périodes, offres, candidatures et stages.
 - Identification et contrôle des droits côté serveur, tests automatisés.
@@ -182,3 +185,7 @@ de l'API se change avec `API_PORT` dans `backend/.env`.
 
 Après chaque séance, ajoutez dans `docs/` la conversation exportée avec l'agent
 (`conversation-1.md`, `conversation-2.md`…). En fin de projet, ajoutez `docs/bilan.md`.
+
+Le workflow `.github/workflows/check.yml` lance `npm run check` sous Windows
+lors des pushes et pull requests. Consulter le résultat réel sur GitHub avant de
+considérer les contrôles distants comme réussis.

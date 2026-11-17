@@ -363,7 +363,7 @@ Les trois exports Excel de Gesta doivent pouvoir être importés (§8.20, §8.21
 | D-08 | Stage trouvé par l'étudiant | L'étudiant le déclare, un administrateur le valide ; pas d'auto-validation. |
 | D-09 | Sélection du candidat | Faite par l'administrateur. |
 | D-10 | Superviseur interne | Simple information sur le stage, sans compte pour les professeurs. |
-| D-11 | Plusieurs étudiants pour une offre | Non : une offre par étudiant. Une entreprise peut avoir plusieurs offres. |
+| D-11 | Plusieurs étudiants pour une offre | Non : une offre ne peut être attribuée qu'à un seul étudiant. Une entreprise peut avoir plusieurs offres. |
 | D-12 | Suppression d'une offre attribuée | Proposition acceptée par défaut : archivage seulement. |
 | D-13 | Relance annuelle | Export de la liste des contacts ; pas de mailing intégré. |
 | D-14 | Doublons | Recherche approximative pendant la saisie et fusion manuelle par l'administrateur. |
@@ -412,8 +412,18 @@ Ces points ne bloquent pas le démarrage du développement : chacun est couvert 
 
 ## Documents de référence
 
-- [Interview numérotée](interview_numerotee/minutes_interview_gesta_numerotees.md)
-- [Cahier des charges v1 (séance)](Solution_seance_cdc/cdc_gesta_v1.md)
-- [Matrice interview → CDC](Solution_seance_cdc/matrice_interview_vers_cdc.html)
-- [Matrice CDC → interview](Solution_seance_cdc/matrice_cdc_vers_interview.html)
-- Exports anonymisés : `gesta_etudiants_anonymise.xlsx`, `gesta_lieux_anonymise.xlsx`, `gesta_contacts_anonymise.xlsx`
+Les documents suivants sont cités par la version de développement d'origine,
+mais ne sont pas fournis dans ce dépôt :
+
+- interview numérotée : `interview_numerotee/minutes_interview_gesta_numerotees.md` ;
+- cahier des charges v1 : `Solution_seance_cdc/cdc_gesta_v1.md` ;
+- matrices : `Solution_seance_cdc/matrice_interview_vers_cdc.html` et
+  `Solution_seance_cdc/matrice_cdc_vers_interview.html` ;
+- exports anonymisés : `gesta_etudiants_anonymise.xlsx`,
+  `gesta_lieux_anonymise.xlsx` et `gesta_contacts_anonymise.xlsx`.
+
+Ils sont à retrouver dans les ressources du cours ou les archives du binôme.
+Les références § de ce document sont conservées, mais ne constituent pas une
+vérification de ces sources. Voir [suivi-relecture.md](suivi-relecture.md) pour
+les limites de traçabilité et les compléments proposés, sans modification des
+décisions client ni ajout d'exigence métier.

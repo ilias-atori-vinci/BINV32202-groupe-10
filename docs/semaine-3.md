@@ -1,5 +1,16 @@
 # Bilan — Semaine 3
 
+## Résumé après relecture du 17 novembre 2026
+
+- Les tests vérifient désormais les quatre statuts non publiés et le véritable
+  propriétaire d'une candidature créée malgré un `studentId` envoyé dans le corps.
+- La page des offres délègue les candidatures à `useOfferApplication` ; elle relit
+  l'historique au retour sur la page et isole les réponses des différentes sessions.
+- Les guides ont été précisés et un workflow de contrôle a été ajouté. Son exécution
+  sur GitHub reste à vérifier après un push.
+- Les limites documentaires et les essais personnels encore manquants sont explicités
+  dans [suivi-relecture.md](suivi-relecture.md). Aucun résultat manuel n'est inventé.
+
 ## Périmètre et méthode
 
 Cette semaine a porté sur l'audit du harnais agentique de Gesta, la traçabilité
@@ -17,7 +28,7 @@ Les éléments ci-dessous distinguent :
 
 | Type | Guides (feedforward) | Senseurs (feedback) |
 |---|---|---|
-| Inférentiel | Instructions Copilot, cahier des charges et guides ci-dessous | |
+| Inférentiel | Instructions Copilot, cahier des charges et guides ci-dessous | Revue IA ponctuelle du diff, sans automatisation récurrente |
 | Computationnel | | Oxlint, TypeScript, Vitest et build ci-dessous |
 
 Une revue IA ponctuelle a servi à relire le diff. Elle n'est pas configurée
@@ -47,7 +58,8 @@ Les fichiers REST Client décrivent des requêtes à lancer manuellement.
 | Build | scripts backend/frontend | compilation et copie des migrations | `tsc -p tsconfig.build.json`, `tsc -b`, `vite build` | Build exécuté avec `npm.cmd run check` |
 | REST Client | `backend/http/applications.http`, `backend/http/offers.http` | scénarios HTTP manuels documentés | connexion, candidature, retrait, filtrage | Fichiers lus ; non exécutés cette semaine |
 
-Aucun `AGENTS.md` ni workflow GitHub Actions n'a été trouvé. Le fichier
+Lors de l'audit initial, aucun `AGENTS.md` ni workflow GitHub Actions n'avait été trouvé.
+Un workflow a été ajouté pendant le complément du 17 novembre décrit en fin de bilan. Le fichier
 `.vscode/mcp.json` configure Playwright MCP, mais aucun essai navigateur n'a été
 effectué pendant cette séance.
 
@@ -102,7 +114,7 @@ Les changements sont limités à :
 
 | Test | Assertions utiles | Défaut concret détecté par le test |
 |---|---|---|
-| Offre non publiée | `409`, code `OFFER_NOT_PUBLISHED`, puis liste vide pour l'étudiant | Une insertion malgré le refus ferait échouer la liste vide |
+| Offre non publiée | `409`, code `OFFER_NOT_PUBLISHED`, puis GET 200 et liste vide pour les quatre statuts non publiés | Une insertion malgré le refus ferait échouer la liste vide |
 | Retrait traité ou déjà retiré | `409 APPLICATION_NOT_WITHDRAWABLE`, puis statut initial relu pour `SELECTED`, `REJECTED` et `WITHDRAWN` | Une mise à jour SQL incorrecte ferait changer le statut |
 | Retrait par un autre étudiant | `403 FORBIDDEN`, puis relecture de la liste du propriétaire avec `IN_PROGRESS` et `WITHDRAWN` inchangés | Un retrait non autorisé qui modifierait la ligne serait détecté |
 | Retrait par un contact | `403 FORBIDDEN` pour admin et contact | Une autorisation trop large du DELETE ferait échouer le test |
@@ -126,7 +138,7 @@ et à [la page des candidatures](../frontend/tests/ApplicationsPage.test.tsx).
 |---|---|---|---|---|
 | EF-32 | Déposer avec message et relire la candidature | API, « crée une candidature avec un message pour un étudiant » | POST 201, message nettoyé et IN_PROGRESS, puis GET 200 avec le même identifiant, message et statut | Couverte côté API. Rechargement du navigateur non essayé |
 | EF-32 | Déposer sans message | API, « crée une candidature sans message ». Offres, « permet l'envoi sans message et n'affiche pas l'action aux contacts » | POST 201, message null, IN_PROGRESS. Le formulaire envoie un message vide et affiche la confirmation simulée | Couverte côté API et formulaire |
-| EF-32 / RG-03 | Refuser une offre non publiée | API, « refuse une offre qui n'est pas publiée conformément à RG-03 » | 409 OFFER_NOT_PUBLISHED et liste toujours vide | Couverte pour l'offre soumise utilisée |
+| EF-32 / RG-03 | Refuser une offre non publiée | API, « refuse une offre %s conformément à RG-03 » | 409 OFFER_NOT_PUBLISHED et liste toujours vide | Couverte pour SUBMITTED, PENDING, ASSIGNED et ARCHIVED |
 | EF-32 | Refuser un administrateur et un contact | API, « refuse un administrateur et un contact » au dépôt, « refuse les rôles autres qu'étudiant » au retrait | 403 pour les deux profils. Au retrait, code FORBIDDEN également contrôlé | Refus couverts côté API |
 | EF-32 | Retirer une candidature en cours | API, « retire la candidature en cours de l'étudiant connecté ». Page des candidatures, « retire une candidature en cours et conserve le statut affiché » | DELETE 200, même ID avec WITHDRAWN, puis GET avec ce statut. Dans la page, « Retirée » apparaît et le bouton disparaît | Couverte côté API et page simulée |
 | EF-32 | Refuser une candidature traitée ou déjà retirée | API, « refuse le retrait d'une candidature %s » (retenue, non retenue, déjà retirée) | 409 APPLICATION_NOT_WITHDRAWABLE et statut initial relu | Couverte |
@@ -145,7 +157,7 @@ comptés comme preuves directes d'EF-32 ou d'EF-33.
 
 ## 3. Exécutions, résultats et limites
 
-### Commandes exécutées cette semaine
+### Commandes exécutées pendant la séance d'origine
 
 Contrôle global :
 
@@ -153,7 +165,7 @@ Contrôle global :
 npm.cmd run check
 ```
 
-Résultats réels :
+Résultats rapportés pour la séance d'origine (avant le complément ci-dessous) :
 
 - Oxlint backend et frontend : réussi, sans avertissement ;
 - TypeScript backend et frontend : réussi ;
@@ -173,7 +185,8 @@ Aucun essai manuel n'a été réalisé pendant cette semaine.
 Les essais suivants sont seulement **rapportés** par des documents antérieurs :
 
 - dans [`docs/semaine-2.md`](./semaine-2.md), l'étudiant rapporte un dépôt avec
-  message et la consultation d'un détail ;
+  message ; l'ancienne mention d'un détail n'est pas confirmée par le code et a été
+  retirée des preuves ;
 - dans [`docs/verification-seance-6.md`](./verification-seance-6.md), une
   vérification navigateur antérieure rapporte des essais sur les profils,
   périodes et nombres d'offres.
@@ -191,9 +204,12 @@ valident pas les cas ajoutés cette semaine.
 
 ## 4. Audit des guides par rapport à Web 2
 
-Les références ci-dessous viennent du cours **BINV2150A — Web 2**, dossier
+Les références historiques ci-dessous sont attribuées au cours **BINV2150A — Web 2**, dossier
 `BINV2150A-slides`. Les numéros correspondent aux pages de `slides-export.pdf`
-dans chaque dossier de séance. Les recommandations sont des résultats de l'audit.
+dans chaque dossier de séance. Les recommandations sont des résultats de l'audit
+initial. Ces supports ne sont pas inclus dans ce dépôt et n'ont pas été revérifiés
+pendant la relecture du 17 novembre. Les ajouts actuels aux guides sont également
+justifiés par les conventions et le code observables de Gesta.
 
 | Attente Web 2 et source | Guide examiné et passage | Correspondance | Écart ou recommandation |
 |---|---|---|---|
@@ -223,3 +239,52 @@ Ces références Web 2 ne suffisent pas à leur attribuer un statut d'exigence d
    serveur. Ils peuvent mieux expliciter la gestion des réponses HTTP et des formulaires.
 6. Le mode démo est explicitement réservé au développement et ne constitue pas
    une authentification réelle.
+
+## Complément du 17 novembre 2026
+
+Cette relecture, réalisée avec Codex à la demande de l'étudiant, prolonge le travail
+sur la branche semaine 3. Elle n'est pas présentée comme un travail effectué lors
+de la séance d'origine, ni comme un exercice TDD de la phase suivante.
+
+### Nouveaux cas et assertions
+
+| Cas | Test ou contrôle | Preuve et limite |
+|---|---|---|
+| Identité imposée par la session | API, « utilise l'étudiant de la session et ignore tout studentId envoyé » | GET des deux étudiants avant/après ; identifiant nouvellement créé dans la liste du bon propriétaire ; liste de l'autre inchangée. Les deux étudiants sont initialement libres de candidater à l'offre, pour éviter qu'un doublon masque une erreur d'identité |
+| Offre non publiée | API, « refuse une offre %s conformément à RG-03 » | SUBMITTED, PENDING, ASSIGNED et ARCHIVED donnent 409 et aucune création |
+| Candidature déjà envoyée au retour sur la page | Offres, « reconnaît une candidature %s après remontage de la page » | Pour IN_PROGRESS, SELECTED, REJECTED : le bouton reste désactivé après une nouvelle lecture de l'API simulée |
+| Candidature retirée | Offres, « permet de recandidater après un retrait » | WITHDRAWN ne bloque pas le bouton |
+| Erreur de lecture des candidatures | Offres, « ne propose pas d'envoi si la lecture des candidatures échoue » | Offres toujours visibles, erreur affichée, action d'envoi absente |
+| Refus d'envoi | Offres, « conserve le message saisi après un refus d'envoi et signale l'erreur » | Erreur affichée, saisie conservée, nouvelle tentative possible |
+| Expiration pendant l'envoi | Offres, « signale l'expiration de session lors de l'envoi » | Le callback de déconnexion est appelé sur 401 |
+| Ancienne session | Offres, « ignore le refus d'un ancien envoi après changement de session » et « ignore l'historique de l'ancienne session reçu en retard » | Ancien 401 ignoré sans déconnecter la session courante ; ancien historique sans effet sur le bouton |
+| Autres profils | Offres, « ne charge pas les candidatures pour un contact » | Pas d'appel à une route réservée aux étudiants |
+
+Les tests sont dans `backend/tests/applications.test.ts` et
+`frontend/tests/OffersPage.test.tsx`. Les réponses frontend sont simulées ; aucun
+parcours navigateur personnel n'est déclaré validé par ces tests.
+
+### Guides et senseurs ajoutés
+
+- `.github/copilot-instructions.md` précise le contrôle HTTP avant JSON via
+  `readJson`, la responsabilité des hooks, les formulaires accessibles et la
+  distinction entre résultats automatisés et observations personnelles.
+- `docs/architecture.md` décrit le hook de dépôt et ses limites.
+- `.github/workflows/check.yml` lance les contrôles existants sous Windows,
+  pour les pushes et PR. Il est configuré, mais aucune réussite distante n'est
+  annoncée avant sa véritable exécution sur GitHub.
+
+### Vérification finale
+
+Contrôles exécutés sur l'état corrigé :
+
+- `npm.cmd run test -w frontend -- tests/OffersPage.test.tsx` : 22 tests réussis ;
+- `npm.cmd run check` : lint et TypeScript réussis, 143 tests backend et
+  71 tests frontend réussis (214 au total), builds backend et frontend réussis ;
+- `git -c core.whitespace=cr-at-eol diff --check` : réussi.
+
+Les mocks de la page ont été adaptés pour distinguer la lecture des candidatures
+et leur dépôt, ainsi que les routes lors d'un changement de session. Aucun contrôle
+n'a été désactivé. Les tests API ont été exécutés avec l'accès réseau local nécessaire
+à Supertest. Aucun essai navigateur n'a été réalisé pendant ce complément.
+Les résultats de la CI distante et les essais personnels restent à confirmer.
