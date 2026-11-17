@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import OffersPage from "../src/pages/OffersPage.tsx";
+import { ApiError } from "../src/utils/api.ts";
 import { adminUser, contactUser, stubFetch, studentUser } from "./helpers/fetchMock.ts";
 
 const offers = [
@@ -169,9 +170,11 @@ describe("OffersPage : fiabilité du filtre", () => {
   it("masque les offres de la session précédente pendant un changement de jeton", async () => {
     let resolveNext: (value: Response) => void = () => { throw new Error("Requête absente"); };
     const nextResponse = new Promise<Response>((resolve) => { resolveNext = resolve; });
-    const fetchMock = vi.fn()
-      .mockResolvedValueOnce(Response.json(offers))
-      .mockReturnValueOnce(nextResponse);
+    let offersCalls = 0;
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      if (String(input).includes("/applications")) return Promise.resolve(Response.json([]));
+      return ++offersCalls === 1 ? Promise.resolve(Response.json(offers)) : nextResponse;
+    });
     vi.stubGlobal("fetch", fetchMock);
     const onUnauthorized = vi.fn();
     const { rerender } = render(<OffersPage user={adminUser} token="premier" onUnauthorized={onUnauthorized} />);
@@ -197,7 +200,7 @@ describe("OffersPage : candidature", () => {
   it("permet à un étudiant d'envoyer une candidature avec un message", async () => {
     const fetchMock = stubFetch({
       "/api/offers": () => Response.json([publishedOffer]),
-      "/api/applications": () =>
+      "/api/applications": (init) => init?.method !== "POST" ? Response.json([]) :
         Response.json(
           {
             id: 7,
@@ -212,7 +215,7 @@ describe("OffersPage : candidature", () => {
 
     render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
     await screen.findByText(publishedOffer.title);
-    fireEvent.click(screen.getByRole("button", { name: "Candidater" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Candidater" }));
     fireEvent.change(screen.getByLabelText("Message (facultatif)"), {
       target: { value: "Mon message" },
     });
@@ -236,7 +239,7 @@ describe("OffersPage : candidature", () => {
   it("permet l'envoi sans message et n'affiche pas l'action aux contacts", async () => {
     const fetchMock = stubFetch({
       "/api/offers": () => Response.json([publishedOffer]),
-      "/api/applications": () =>
+      "/api/applications": (init) => init?.method !== "POST" ? Response.json([]) :
         Response.json(
           {
             id: 8,
@@ -253,7 +256,7 @@ describe("OffersPage : candidature", () => {
       <OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />,
     );
     await screen.findByText(publishedOffer.title);
-    fireEvent.click(screen.getByRole("button", { name: "Candidater" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Candidater" }));
     fireEvent.click(screen.getByRole("button", { name: "Envoyer ma candidature" }));
     await screen.findByText("Votre candidature a été envoyée.");
     expect(fetchMock).toHaveBeenLastCalledWith(
@@ -269,4 +272,128 @@ describe("OffersPage : candidature", () => {
     await screen.findByText(publishedOffer.title);
     expect(screen.queryByRole("button", { name: "Candidater" })).not.toBeInTheDocument();
   });
+
+  const previousApplication = (status: "IN_PROGRESS" | "SELECTED" | "REJECTED" | "WITHDRAWN") => ({
+    id: 42,
+    offerId: publishedOffer.id,
+    offerTitle: publishedOffer.title,
+    companyShortName: publishedOffer.companyShortName,
+    academicYear: publishedOffer.academicYear,
+    period: publishedOffer.period,
+    message: null,
+    status,
+    appliedAt: "2026-11-03 10:20:00",
+  });
+
+  it.each(["IN_PROGRESS", "SELECTED", "REJECTED"] as const)(
+    "reconnaît une candidature %s après remontage de la page",
+    async (status) => {
+      stubFetch({
+        "/api/offers": () => Response.json([publishedOffer]),
+        "/api/applications": () => Response.json([previousApplication(status)]),
+      });
+      const onUnauthorized = vi.fn();
+      const first = render(<OffersPage user={studentUser} token="jeton" onUnauthorized={onUnauthorized} />);
+      expect(await screen.findByRole("button", { name: "Candidature envoyée" })).toBeDisabled();
+      first.unmount();
+      render(<OffersPage user={studentUser} token="jeton" onUnauthorized={onUnauthorized} />);
+      expect(await screen.findByRole("button", { name: "Candidature envoyée" })).toBeDisabled();
+    },
+  );
+
+  it("permet de recandidater après un retrait", async () => {
+    stubFetch({
+      "/api/offers": () => Response.json([publishedOffer]),
+      "/api/applications": () => Response.json([previousApplication("WITHDRAWN")]),
+    });
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+    expect(await screen.findByRole("button", { name: "Candidater" })).toBeEnabled();
+  });
+
+  it("ne propose pas d'envoi si la lecture des candidatures échoue", async () => {
+    stubFetch({
+      "/api/offers": () => Response.json([publishedOffer]),
+      "/api/applications": () => new Response(null, { status: 500 }),
+    });
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Chargement des candidatures impossible");
+    expect(await screen.findByText(publishedOffer.title)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Candidater" })).not.toBeInTheDocument();
+  });
+
+  it("conserve le message saisi après un refus d'envoi et signale l'erreur", async () => {
+    stubFetch({
+      "/api/offers": () => Response.json([publishedOffer]),
+      "/api/applications": (init) => init?.method === "POST"
+        ? new Response(null, { status: 409 }) : Response.json([]),
+    });
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={vi.fn()} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Candidater" }));
+    fireEvent.change(screen.getByLabelText("Message (facultatif)"), { target: { value: "Mon message" } });
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer ma candidature" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("statut 409");
+    expect(screen.getByLabelText("Message (facultatif)")).toHaveValue("Mon message");
+    expect(screen.getByRole("button", { name: "Envoyer ma candidature" })).toBeEnabled();
+  });
+
+  it("ignore le refus d'un ancien envoi après changement de session", async () => {
+    let rejectOld: (error: Error) => void = () => { throw new Error("Envoi absent"); };
+    const pending = new Promise<Response>((_resolve, reject) => { rejectOld = reject; });
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.method === "POST") return pending;
+      return Promise.resolve(Response.json(String(input).includes("/applications") ? [] : [publishedOffer]));
+    }));
+    const onUnauthorized = vi.fn();
+    const { rerender } = render(<OffersPage user={studentUser} token="premier" onUnauthorized={onUnauthorized} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Candidater" }));
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer ma candidature" }));
+    rerender(<OffersPage user={studentUser} token="second" onUnauthorized={onUnauthorized} />);
+    expect(screen.queryByLabelText("Message (facultatif)")).not.toBeInTheDocument();
+    await screen.findByRole("button", { name: "Candidater" });
+    await act(async () => { rejectOld(new ApiError(401, "Ancienne session")); });
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByText("Votre candidature a été envoyée.")).not.toBeInTheDocument();
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
+  it("ne charge pas les candidatures pour un contact", async () => {
+    const fetchMock = stubFetch({ "/api/offers": () => Response.json([publishedOffer]) });
+    render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText(publishedOffer.title);
+    expect(fetchMock).not.toHaveBeenCalledWith("/api/applications", expect.anything());
+  });
+
+
+  it("signale l'expiration de session lors de l'envoi", async () => {
+    stubFetch({
+      "/api/offers": () => Response.json([publishedOffer]),
+      "/api/applications": (init) => init?.method === "POST"
+        ? new Response(null, { status: 401 }) : Response.json([]),
+    });
+    const onUnauthorized = vi.fn();
+    render(<OffersPage user={studentUser} token="jeton" onUnauthorized={onUnauthorized} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Candidater" }));
+    fireEvent.click(screen.getByRole("button", { name: "Envoyer ma candidature" }));
+    await waitFor(() => expect(onUnauthorized).toHaveBeenCalledOnce());
+  });
+
+  it("ignore l'historique de l'ancienne session reçu en retard", async () => {
+    let resolveOld: (value: Response) => void = () => { throw new Error("Lecture absente"); };
+    const pending = new Promise<Response>((resolve) => { resolveOld = resolve; });
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (!String(input).includes("/applications")) return Promise.resolve(Response.json([publishedOffer]));
+      const headers = init?.headers as Record<string, string>;
+      return headers.Authorization === "premier" ? pending : Promise.resolve(Response.json([]));
+    }));
+    const onUnauthorized = vi.fn();
+    const { rerender } = render(<OffersPage user={studentUser} token="premier" onUnauthorized={onUnauthorized} />);
+    await screen.findByText(publishedOffer.title);
+    expect(screen.queryByRole("button", { name: "Candidater" })).not.toBeInTheDocument();
+    rerender(<OffersPage user={studentUser} token="second" onUnauthorized={onUnauthorized} />);
+    await screen.findByRole("button", { name: "Candidater" });
+    await act(async () => { resolveOld(Response.json([previousApplication("IN_PROGRESS")])); });
+    expect(screen.getByRole("button", { name: "Candidater" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Candidature envoyée" })).not.toBeInTheDocument();
+  });
+
 });
