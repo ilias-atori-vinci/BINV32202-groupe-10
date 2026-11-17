@@ -184,6 +184,30 @@ essais navigateur.
 Le skill et son dossier restent non suivis par Git dans l'état observé ; cette
 vérification n'a créé ni commit ni push.
 
+### Installation du skill TDD
+
+Le skill TDD a été trouvé sous un dossier mal nommé :
+`test-driven-developpement de superpower`, alors que son frontmatter déclarait
+`name: test-driven-development`. Selon la convention des skills, le nom du
+dossier doit correspondre au champ `name`. Le dossier a donc été renommé en
+`.github/skills/test-driven-development/`, sans supprimer sa licence ni sa
+référence [writing-good-tests.md](../.github/skills/test-driven-development/writing-good-tests.md).
+
+Le fichier [SKILL.md](../.github/skills/test-driven-development/SKILL.md) et
+sa référence ont été lus intégralement. La consigne TDD demandée a été ajoutée
+au début du corps, immédiatement après le YAML. La règle globale a été ajoutée
+à [.github/copilot-instructions.md](../.github/copilot-instructions.md) sans
+supprimer l'existant.
+
+Vérifications effectuées :
+
+- le frontmatter contient `name`, `description` et les délimiteurs YAML ;
+- `disable-model-invocation: true` est absent ;
+- `writing-good-tests.md` existe à l'emplacement référencé ;
+- aucun autre fichier de référence local n'est mentionné par le skill ;
+- aucune recherche par titre, test ou code applicatif n'a été modifiée ;
+- aucun commit ni push n'a été effectué.
+
 ### Travail prévu
 
 Identifier puis installer uniquement les skills nécessaires au travail
