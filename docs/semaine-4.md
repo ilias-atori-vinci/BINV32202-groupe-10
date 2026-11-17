@@ -100,6 +100,39 @@ Les assertions devront vérifier les données retournées, les appels et les
 effets de bord, pas seulement le statut HTTP. Les nouveaux tests devront être
 écrits avant ou avec l'implémentation, puis le contrôle global sera relancé.
 
+### Confrontation des constats EF-32 et EF-33
+
+Le tableau confronte les constats du précédent audit aux assertions réellement
+présentes. Les lignes marquées « constat écarté » ne sont pas des manques
+actuels ; elles sont conservées pour éviter de répéter des recommandations
+déjà appliquées.
+
+| Cas | Test existant | Assertion utile | Manque confirmé ou constat écarté | Justification |
+|---|---|---|---|---|
+| Dépôt avec message | `crée une candidature avec un message pour un étudiant` dans [applications.test.ts:163](../backend/tests/applications.test.ts:163) | `POST 201`, message nettoyé, `IN_PROGRESS`, puis relecture par `GET` avec le même identifiant | Constat écarté | Le test prouve le contrat de réponse et la persistance. |
+| Dépôt sans message | `crée une candidature sans message` dans [applications.test.ts:189](../backend/tests/applications.test.ts:189) | `message === null`, `IN_PROGRESS`, puis relecture de l'offre, de l'identifiant et du statut | Constat renforcé, manque corrigé | L'ancien test ne relisait pas la candidature après création ; l'assertion de relecture a été ajoutée. |
+| Refus d'une offre non publiée | `refuse une offre %s conformément à RG-03` dans [applications.test.ts:210](../backend/tests/applications.test.ts:210) | `409`, code `OFFER_NOT_PUBLISHED`, puis liste vide pour `SUBMITTED`, `PENDING`, `ASSIGNED` et `ARCHIVED` | Constat écarté | Les quatre statuts et l'absence de création sont vérifiés. |
+| Refus d'un administrateur ou d'un contact | `refuse un administrateur et un contact` dans [applications.test.ts:246](../backend/tests/applications.test.ts:246) | `403` et code `FORBIDDEN` pour chaque rôle | Constat renforcé, manque corrigé | Les statuts étaient déjà testés ; les deux codes d'erreur ont été ajoutés. |
+| Doublon actif | `refuse une candidature active en doublon` dans [applications.test.ts:228](../backend/tests/applications.test.ts:228) et `refuse deux candidatures actives pour le même étudiant et la même offre` dans [constraints.test.ts:172](../backend/tests/db/constraints.test.ts:172) | code API `APPLICATION_EXISTS` et violation SQLite `UNIQUE` | Constat écarté | Le service et l'index partiel sont couverts séparément. |
+| Retrait par le propriétaire | `retire la candidature en cours de l'étudiant connecté` dans [applications.test.ts:28](../backend/tests/applications.test.ts:28) et `retire une candidature en cours et conserve le statut affiché` dans [ApplicationsPage.test.tsx:112](../frontend/tests/ApplicationsPage.test.tsx:112) | statut `WITHDRAWN` relu côté API, puis libellé `Retirée` et bouton supprimé côté interface | Constat écarté | Le résultat métier et l'affichage sont vérifiés. |
+| Retrait traité ou déjà retiré | `refuse le retrait d'une candidature %s` dans [applications.test.ts:53](../backend/tests/applications.test.ts:53) | `409 APPLICATION_NOT_WITHDRAWABLE`, puis statut initial inchangé | Constat écarté | Les cas `SELECTED`, `REJECTED` et `WITHDRAWN` sont paramétrés. |
+| Retrait par un autre étudiant | `refuse le retrait d'une candidature appartenant à un autre étudiant` dans [applications.test.ts:40](../backend/tests/applications.test.ts:40) | `403 FORBIDDEN`, puis relecture des candidatures du propriétaire sans modification | Constat écarté | L'autorisation et l'absence d'effet de bord sont prouvées. |
+| Retrait par un contact ou un administrateur | `refuse les rôles autres qu'étudiant` dans [applications.test.ts:69](../backend/tests/applications.test.ts:69) | `403` et `FORBIDDEN` pour les deux rôles | Constat écarté | Le contact, qui manquait dans l'ancien état, est maintenant testé. |
+| Retrait refusé dans l'interface | `affiche l'erreur si le retrait est refusé et conserve le statut` dans [ApplicationsPage.test.tsx:139](../frontend/tests/ApplicationsPage.test.tsx:139) | alerte `statut 409`, statut `En cours` conservé, bouton `Retirer` réactivé | Constat renforcé, manque corrigé | Aucun test frontend ne couvrait auparavant l'échec du `DELETE`; le nouveau test détecterait une disparition ou une mutation optimiste incorrecte. |
+| Recandidature après retrait | `autorise une nouvelle candidature après le retrait` dans [applications.test.ts:79](../backend/tests/applications.test.ts:79) | ancienne ligne `WITHDRAWN` et nouvelle ligne `IN_PROGRESS` avec un autre identifiant | Constat écarté | L'historique complet est relu après la nouvelle candidature. |
+| Liste personnelle et isolation API | `retourne les candidatures de l'étudiant connecté avec les informations de l'offre` et `isole les résultats entre deux étudiants` dans [applications.test.ts:101](../backend/tests/applications.test.ts:101) | métadonnées de l'offre, statuts, longueurs et listes distinctes | Constat écarté | Les données personnelles et la séparation entre étudiants sont assertions directement. |
+| Liste vide et profils interdits | `retourne une liste vide pour un étudiant sans candidature` et les tests d'accès dans [applications.test.ts:138](../backend/tests/applications.test.ts:138) | `200 []`, `403 FORBIDDEN` et `401` sans session | Constat écarté | Les états vide, interdit et non authentifié sont couverts côté API. |
+| Quatre statuts dans l'interface | `affiche les informations de l'offre et les statuts français` dans [ApplicationsPage.test.tsx:54](../frontend/tests/ApplicationsPage.test.tsx:54) | `En cours`, `Retenue`, `Non retenue` et `Retirée` présents | Constat écarté | Les quatre libellés sont explicitement recherchés. |
+| Relecture au retour sur les offres | `reconnaît une candidature %s après remontage de la page` dans [OffersPage.test.tsx:288](../frontend/tests/OffersPage.test.tsx:288) | bouton `Candidature envoyée` désactivé après démontage/remontage pour `IN_PROGRESS`, `SELECTED`, `REJECTED` | Constat écarté pour le comportement simulé | Le remontage et la relecture mockée sont testés ; cela ne prouve toutefois pas un essai navigateur avec une base réelle. |
+| Isolation au changement de session frontend | `masque les candidatures précédentes au changement de session` dans [ApplicationsPage.test.tsx:68](../frontend/tests/ApplicationsPage.test.tsx:68) et `ignore l'historique de l'ancienne session reçu en retard` dans [OffersPage.test.tsx:380](../frontend/tests/OffersPage.test.tsx:380) | ancienne donnée masquée, nouveau jeton transmis, réponse tardive ignorée | Constat écarté | Les courses entre sessions sont couvertes par des réponses simulées. |
+
+Les trois renforcements ont été exécutés avant le contrôle global. Aucun défaut
+du code applicatif n'a été révélé : les tests ciblés ont réussi. Les nouveaux
+tests échoueraient concrètement si le dépôt sans message n'était pas persisté,
+si un rôle interdit renvoyait un autre code que `FORBIDDEN`, ou si un retrait
+refusé supprimait/modifiait localement la candidature ou désactivait
+définitivement le bouton.
+
 ## Installation des skills
 
 ### Résultats observés
