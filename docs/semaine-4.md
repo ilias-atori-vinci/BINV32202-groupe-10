@@ -371,3 +371,66 @@ des erreurs de recherche dédiées ou un partage avec une autre page.
 - La longueur maximale de 100 caractères et le paramètre `title` sont des
   choix implémentés et documentés ; ils ne constituent pas une recherche
   approximative.
+
+## Clôture et traçabilité des preuves
+
+### Ce qui a été vérifié par l'agent
+
+- Le cycle TDD EF-30 est attesté dans la conversation exportée :
+  [conversation-1.md](conversation-1.md). Les nouveaux tests ont été observés
+  en échec avant l'implémentation, puis en réussite après le code. Les
+  résultats ciblés consignés sont 26/26 backend et 24/24 frontend.
+- La confrontation des constats EF-32 et EF-33 et les tests ajoutés sont
+  détaillés dans la présente page. Les assertions portent sur le résultat
+  métier, la persistance, les droits et les effets de bord ; aucun test
+  supplémentaire n'est justifié par les constats déjà écartés.
+- Le contrôle réellement relancé le 17 novembre 2026 est :
+
+  ```text
+  npm.cmd run check
+  ```
+
+  Résultat : **réussi**. Lint backend/frontend, vérifications TypeScript et
+  builds backend/frontend réussis ; 10 fichiers et 148 tests backend réussis,
+  8 fichiers et 74 tests frontend réussis, soit **222 tests réussis**.
+- Le contrôle réellement relancé est également :
+
+  ```text
+  git -c core.whitespace=cr-at-eol diff --check
+  ```
+
+  Résultat : **réussi**, sans sortie ni erreur.
+
+### Ce qui relève de la relecture personnelle
+
+La relecture et la validation personnelles des tests ne sont pas documentées
+par une observation indépendante dans les conversations exportées. Elles ne
+doivent donc pas être présentées comme réalisées. La validation utilisateur
+mentionnée dans le récit TDD est conservée comme élément de conversation, mais
+elle ne remplace pas une nouvelle relecture personnelle explicitement
+consignée.
+
+Les essais navigateur n'ont pas été réalisés. Ni `npm.cmd run check`, ni les
+tests jsdom ne constituent une observation dans un navigateur réel. Les dix
+cas du protocole restent donc **À réaliser**, notamment la visibilité par
+profil, les recherches rapides et la candidature depuis la liste.
+
+### Hook et fichiers inutiles
+
+Le hook optionnel n'a pas été réalisé : aucun hook Git n'a été ajouté ni
+vérifié. Cette absence est volontaire et cohérente avec la décision de ne pas
+ajouter une automatisation non nécessaire au périmètre.
+
+Le diff relu ne contient pas de modification inutile à signaler. Le fichier
+`demo-protected.txt`, conservé par la protection de l'environnement, n'a pas
+été supprimé et n'est pas une modification fonctionnelle de cette semaine.
+Il n'est pas inclus dans les changements documentés.
+
+Les seules conversations exportées disponibles et réellement utilisées sont :
+
+- [conversation-1.md](conversation-1.md), analyse, implémentation et validations
+  de la recherche et du filtre ;
+- [conversation-2.md](conversation-2.md), cadrage initial des candidatures,
+  sans modification ni test exécuté dans cet export.
+
+Aucune conversation exportée n'a été réécrite.
