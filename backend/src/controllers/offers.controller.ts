@@ -15,12 +15,33 @@ const parsePeriod = (value: unknown): PeriodCode | undefined => {
   return value as PeriodCode;
 };
 
+const MAX_TITLE_LENGTH = 100;
+
+const parseTitle = (value: unknown): string | undefined => {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string") {
+    throw new HttpError(400, "INVALID_QUERY", "Le paramètre title doit apparaître une seule fois");
+  }
+  if (value.length > MAX_TITLE_LENGTH) {
+    throw new HttpError(
+      400,
+      "INVALID_QUERY",
+      `Le paramètre title ne peut pas dépasser ${MAX_TITLE_LENGTH} caractères`,
+    );
+  }
+
+  const title = value.trim();
+  return title === "" ? undefined : title;
+};
+
 export const createOffersRouter = (offersService: OffersService) => {
   const router = Router();
 
   router.get("/", authorize(canListOffers), (req, res) => {
     res.json(
-      offersService.listOffers(getCurrentUser(req), parsePeriod(req.query.period)).map(toOfferDto),
+      offersService
+        .listOffers(getCurrentUser(req), parsePeriod(req.query.period), parseTitle(req.query.title))
+        .map(toOfferDto),
     );
   });
 

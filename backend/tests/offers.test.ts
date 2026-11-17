@@ -16,6 +16,9 @@ const listOffersAs = (kind: UserKind, id: number) =>
 const listOffersAsPeriod = (kind: UserKind, id: number, period: string) =>
   request(app).get(`/offers?period=${period}`).set("Authorization", tokenFor(kind, id));
 
+const listOffersAsTitle = (kind: UserKind, id: number, title: string) =>
+  request(app).get("/offers").query({ title }).set("Authorization", tokenFor(kind, id));
+
 const offerIds = (body: { id: number }[]): number[] => body.map((offer) => offer.id);
 
 describe("GET /offers : accès", () => {
@@ -163,5 +166,61 @@ describe("GET /offers : filtre par période", () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("INVALID_QUERY");
+  });
+});
+
+describe("GET /offers : recherche par titre", () => {
+  it("recherche une expression dans le titre sans distinguer la casse ni les espaces extérieurs", async () => {
+    const response = await listOffersAsTitle(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      "  RAPPORTS PDF  ",
+    );
+
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([OFFER.PDF_REPORTS]);
+    expect(response.body[0].title).toBe("Module de rapports PDF");
+  });
+
+  it("retourne toutes les offres accessibles pour une recherche vide", async () => {
+    const response = await listOffersAsTitle("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, "   ");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(10);
+  });
+
+  it("combine la recherche par titre avec la période et la visibilité étudiante", async () => {
+    const response = await request(app)
+      .get("/offers")
+      .query({ title: "  qualité des données  ", period: "P2" })
+      .set("Authorization", tokenFor("STUDENT", STUDENT.LUCAS_DUPONT));
+
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([OFFER.DATA_QUALITY]);
+    expect(
+      response.body.every(
+        (offer: { title: string; period: string; status: string }) =>
+          offer.title === "Tableau de bord de qualité des données" &&
+          offer.period === "P2" &&
+          offer.status === "PUBLISHED",
+      ),
+    ).toBe(true);
+  });
+
+  it("retourne une liste vide quand le titre ne correspond pas", async () => {
+    const response = await listOffersAsTitle("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, "titre absent");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+
+  it("recherche plusieurs mots comme une expression entière", async () => {
+    const response = await listOffersAsTitle(
+      "ADMIN",
+      ADMINISTRATOR.ANNE_LECLERCQ,
+      "rapports pdf",
+    );
+
+    expect(offerIds(response.body)).toEqual([OFFER.PDF_REPORTS]);
   });
 });

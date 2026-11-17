@@ -49,9 +49,10 @@ Le parcours d'affichage des offres observé est le suivant :
 6. `OfferTable` affiche les résultats et les actions de candidature prévues
    pour l'étudiant.
 
-**Résultat observé :** il n'existe actuellement pas de paramètre de recherche
-par titre dans `GET /offers`, ni de champ de recherche par titre dans
-`OffersPage`. Le filtre disponible est celui de la période.
+**Résultat observé au point de départ :** il n'existait pas de paramètre de
+recherche par titre dans `GET /offers`, ni de champ de recherche par titre dans
+`OffersPage`. Le filtre disponible était celui de la période. La recherche
+EF-30 a ensuite été implémentée et ses résultats sont consignés plus bas.
 
 La recherche d'entreprises constitue l'exemple réutilisable :
 
@@ -80,11 +81,13 @@ les réponses obsolètes et le parcours de candidature côté interface. Le
 contrôle global du 17 novembre 2026 a confirmé 143 tests backend et 71 tests
 frontend réussis.
 
-La recherche par titre n'est pas couverte, puisqu'elle n'est pas implémentée.
-Les tests d'entreprises fournissent toutefois les assertions utiles pour
-rechercher dans un texte, limiter la saisie et protéger les jokers SQL.
+Au moment de l'audit initial, la recherche par titre n'était pas couverte,
+puisqu'elle n'était pas encore implémentée. Les tests d'entreprises ont fourni
+les assertions utiles pour rechercher dans un texte, limiter la saisie et
+protéger les jokers SQL. Les tests EF-30 ajoutés ensuite sont décrits dans la
+section TDD.
 
-### Travail prévu
+### Travail prévu au point de départ
 
 Avant le code, compléter une matrice de cas pour la recherche d'offres :
 
@@ -217,7 +220,7 @@ introduire une dépendance inutile. Toute installation effective et son
 résultat seront consignés séparément ; cette section ne constitue pas une
 preuve d'installation.
 
-## TDD
+## Recherche EF-30 et TDD
 
 ### Résultats observés
 
@@ -226,20 +229,51 @@ en mémoire) et frontend (Vitest/Testing Library avec réponses API simulées).
 Les tests existants de recherche d'entreprises montrent des assertions
 réutilisables pour la validation du paramètre et le comportement de recherche.
 
-Aucun cycle TDD spécifique à la recherche par titre n'a encore été réalisé.
+Un cycle TDD spécifique à EF-30 a été réalisé. Les tests rouges ont d'abord été
+préparés et exécutés avant toute modification applicative :
 
-### Travail prévu
+- backend : 22 tests réussis et 4 échecs attendus sur les nouveaux cas ;
+- frontend : 22 tests réussis et 2 échecs attendus sur les nouveaux cas.
 
-Appliquer un cycle court :
+Après la validation explicite de l'utilisateur (`validated`), l'implémentation
+a été ajoutée sans dépendance ni migration. Le contrat obtenu est le suivant :
 
-1. écrire les tests rouges du contrat de recherche et de ses combinaisons ;
-2. implémenter le minimum dans contrôleur, service, repository, service
-   frontend, hook et page ;
-3. refactorer sans perdre la visibilité, l'annulation ou la validation ;
-4. relancer les tests ciblés, puis `npm.cmd run check`.
+- `GET /offers?title=...`, limité au titre et insensible à la casse ;
+- espaces extérieurs ignorés, recherche vide équivalente à l'absence de filtre ;
+- expression multi-mots conservée comme une seule expression ;
+- combinaison avec `period` et maintien de la visibilité par profil ;
+- liste vide et message `Aucune offre ne correspond à la recherche.` sans
+  correspondance ;
+- échappement des jokers SQL `%`, `_` et `\` ;
+- validation des paramètres répétés ou non textuels avec `INVALID_QUERY`.
 
-Les résultats devront distinguer les tests réellement exécutés des scénarios
-simplement prévus.
+Les tests ciblés après implémentation ont réussi : 26/26 backend et 24/24
+frontend. Le test frontend d'état vide a d'abord été corrigé pour saisir
+explicitement un titre absent ; le défaut concernait le test, car une saisie
+réellement vide devait afficher `Aucune offre à afficher.`.
+
+### Vérifications globales observées
+
+La commande complète suivante a réussi après l'implémentation :
+
+```text
+npm.cmd run check
+```
+
+Résultats observés : lint backend et frontend réussis sans avertissement,
+typechecks réussis, 148 tests backend réussis, 74 tests frontend réussis,
+builds backend et frontend réussis. Aucun défaut applicatif n'a été révélé par
+les tests ciblés ou la suite complète.
+
+Les fichiers de contrat associés ont également été mis à jour :
+[backend/API.md](../backend/API.md) et
+[backend/http/offers.http](../backend/http/offers.http). Aucun commit ni push
+n'a été effectué.
+
+### Travail restant
+
+Effectuer les essais navigateur réels décrits ci-dessous. Ils restent
+distincts des résultats automatisés observés ci-dessus.
 
 ## Essais navigateur
 
@@ -248,7 +282,7 @@ simplement prévus.
 `npm.cmd run check` n'a exécuté aucun navigateur. Les tests frontend actuels
 utilisent jsdom et des mocks d'API ; ils ne valident donc ni le lancement
 simultané de l'API et de Vite, ni une recherche réelle dans l'interface.
-Aucun nouvel essai navigateur n'est déclaré dans ce point de départ.
+Aucun essai navigateur réel n'a encore été exécuté après EF-30.
 
 ### Travail prévu
 
@@ -268,30 +302,30 @@ navigateur.
 
 ## Hook optionnel
 
+### Résultats observés
+
+Le hook optionnel n'a pas été ajouté. La recherche tient dans le parcours
+existant `OffersPage → useOffers → offers.service`, qui conserve déjà
+l'annulation et l'isolation des sessions. Une abstraction supplémentaire
+n'apporterait pas de bénéfice démontré pour ce périmètre.
+
 ### Travail prévu
 
-Évaluer un hook optionnel dédié à la recherche par titre seulement si le
-parcours gagne réellement en lisibilité. Il pourrait regrouper la valeur
-saisie, le délai, l'annulation, le chargement et l'erreur, sur le modèle de
-`useCompanies`, mais `useOffers` doit rester responsable du chargement des
-offres et de l'isolation des sessions.
-
-### Limite actuelle
-
-Aucun hook optionnel n'est installé, créé ou validé dans ce point de départ.
-Il ne faudra pas ajouter une abstraction uniquement pour satisfaire le thème
-de la semaine.
+Réévaluer ce choix uniquement si un futur besoin introduit un délai de frappe,
+des erreurs de recherche dédiées ou un partage avec une autre page.
 
 ## Limites
 
-- La recherche par titre reste à concevoir et à implémenter ; aucune
-  fonctionnalité applicative n'est ajoutée par ce document.
+- La recherche approximative et la gestion particulière des accents restent
+  hors périmètre EF-30.
+- Les essais navigateur réels restent à faire ; les résultats actuels sont
+  uniquement automatisés.
 - Les résultats de `npm.cmd run check` sont locaux ; aucune réussite de la CI
   distante n'est déduite.
 - Les tests frontend simulent l'API et ne remplacent pas les essais dans un
   navigateur réel.
 - Les essais personnels rapportés dans les bilans précédents restent
   distincts des observations réalisées cette semaine.
-- Les choix encore ouverts (syntaxe exacte du paramètre, longueur maximale,
-  comportement de la casse et emplacement du champ) devront être fixés par
-  des tests et par les conventions existantes avant le développement.
+- La longueur maximale de 100 caractères et le paramètre `title` sont des
+  choix implémentés et documentés ; ils ne constituent pas une recherche
+  approximative.

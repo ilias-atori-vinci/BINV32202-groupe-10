@@ -24,6 +24,38 @@ const offers = [
 ];
 
 describe("OffersPage", () => {
+  it("recherche les offres par titre en ignorant les espaces extérieurs", async () => {
+    const fetchMock = stubFetch({
+      "/api/offers": () => Response.json(offers),
+    });
+
+    render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText("Refonte du portail client");
+
+    fireEvent.change(screen.getByLabelText("Rechercher par titre"), {
+      target: { value: "  portail client  " },
+    });
+
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        "/api/offers?title=portail+client",
+        expect.objectContaining({ headers: { Authorization: "jeton" } }),
+      ),
+    );
+  });
+
+  it("affiche un message adapté quand aucun titre ne correspond", async () => {
+    stubFetch({
+      "/api/offers": () => Response.json([]),
+    });
+
+    render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText("Rechercher par titre"), {
+      target: { value: "titre absent" },
+    });
+    expect(await screen.findByText("Aucune offre ne correspond à la recherche.")).toBeInTheDocument();
+  });
+
   it("affiche les offres avec leurs libellés français", async () => {
     const fetchMock = stubFetch({ "/api/offers": () => Response.json(offers) });
 
