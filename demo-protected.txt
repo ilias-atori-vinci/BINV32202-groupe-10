@@ -1,0 +1,6 @@
+Lis les fichiers Tool Guardian fournis.
+Explique l'événement preToolUse, la commande du script et la décision deny.
+Vérifie les chemins sous Windows et indique les limites de protection.
+
+Ne supprime rien et ne prétends pas que le hook a déjà été déclenché.
+Ne fais aucun commit.

@@ -275,6 +275,48 @@ n'a été effectué.
 Effectuer les essais navigateur réels décrits ci-dessous. Ils restent
 distincts des résultats automatisés observés ci-dessus.
 
+### Protocole manuel avec les données de démonstration
+
+#### Démarrage sans réinitialiser la base
+
+Depuis la racine du dépôt, ne pas exécuter `npm.cmd run db:reset` et ne pas
+supprimer `backend/data/gesta.db`. Si l'environnement est déjà installé et la
+base existe, démarrer directement :
+
+```text
+npm.cmd run dev
+```
+
+Ouvrir ensuite `http://localhost:5173`. Si la base n'a jamais été initialisée,
+exécuter une seule fois `npm.cmd run db:init` avant `npm.cmd run dev` ; cette
+commande ne supprime pas la base existante. Le mode de connexion de
+démonstration doit être activé dans `backend/.env` avec
+`DEMO_AUTH_ENABLED=true`, comme indiqué dans le README.
+
+Les profils proposés dans ce protocole sont **Anne Leclercq
+(administratrice)** et **Dmytro Kovalenko (étudiant sans candidature)**. Les
+résultats attendus s'appuient sur les offres et périodes décrites dans
+[docs/seed.md](seed.md). La colonne « Observé » ne contient pas de résultat
+personnel : chaque essai non exécuté est explicitement marqué **À réaliser**.
+
+| Cas | Profil | Saisie | Période | Résultat attendu | Observé |
+|---|---|---|---|---|---|
+| Fragment de titre | Anne Leclercq (administratrice) | `portail` | Toutes les périodes | L'offre `Refonte du portail client` apparaît. | **À réaliser** |
+| Casse différente | Anne Leclercq (administratrice) | `PORTAIL` | Toutes les périodes | Même résultat que `portail` : `Refonte du portail client`. | **À réaliser** |
+| Espaces périphériques | Anne Leclercq (administratrice) | `  qualité des données  ` | Toutes les périodes | Une seule offre apparaît : `Tableau de bord de qualité des données`. | **À réaliser** |
+| Expression entière | Anne Leclercq (administratrice) | `qualité des données` | Toutes les périodes | L'expression complète correspond à `Tableau de bord de qualité des données`, et non à une recherche mot par mot réordonnée. | **À réaliser** |
+| Recherche vide | Dmytro Kovalenko (étudiant) | champ vide | Toutes les périodes | La liste normale des offres accessibles s'affiche, limitée aux offres `PUBLISHED` visibles par un étudiant. | **À réaliser** |
+| Aucune correspondance | Anne Leclercq (administratrice) | `titre inexistant` | Toutes les périodes | La liste est vide et le message `Aucune offre ne correspond à la recherche.` s'affiche. | **À réaliser** |
+| Recherche avec période | Anne Leclercq (administratrice) | `API` | `P2` | `API REST de facturation` apparaît ; les offres hors `P2` ou sans correspondance sont absentes. | **À réaliser** |
+| Visibilité étudiant | Dmytro Kovalenko (étudiant) | champ vide | `P2` | Seules les offres publiées de `P2` apparaissent, notamment `Application React de gestion de flotte`, `API REST de facturation`, `Tableau de bord de qualité des données` et `Assistant conversationnel interne`. Les offres soumises, en attente ou attribuées ne sont pas affichées. | **À réaliser** |
+| Changement rapide de recherche | Anne Leclercq (administratrice) | saisir `portail`, puis remplacer rapidement par `API` | Toutes les périodes | Le résultat final correspond uniquement à `API REST de facturation` ; une réponse tardive de la recherche `portail` ne doit pas remplacer le résultat final. | **À réaliser** |
+| Changement rapide de période | Dmytro Kovalenko (étudiant) | champ vide | passer rapidement de `Toutes les périodes` à `P2`, puis à `Autre` | Le résultat final correspond à `Autre` et reste limité aux offres publiées visibles par l'étudiant ; les résultats d'une période précédente ne doivent pas réapparaître. | **À réaliser** |
+
+Pour chaque ligne, attendre la fin du chargement avant de noter le résultat,
+puis renseigner la colonne « Observé » avec le profil réellement utilisé, les
+résultats visibles et les éventuels écarts. Ne pas transformer la réussite
+d'un test Vitest en observation navigateur.
+
 ## Essais navigateur
 
 ### Résultats observés
