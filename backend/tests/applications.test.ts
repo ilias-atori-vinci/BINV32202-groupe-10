@@ -196,15 +196,21 @@ describe("POST /applications", () => {
     expect(response.body.status).toBe("IN_PROGRESS");
   });
 
-  it("refuse une offre qui n'est pas publiée conformément à RG-03", async () => {
+  it.each([
+    ["SUBMITTED", OFFER.CLIENT_PORTAL],
+    ["PENDING", OFFER.E2E_TESTS],
+    ["ASSIGNED", OFFER.CLOUD_MIGRATION],
+    ["ARCHIVED", OFFER.PDF_REPORTS],
+  ] as const)("refuse une offre %s conformément à RG-03", async (_status, offerId) => {
     const response = await applyAs("STUDENT", STUDENT.DMYTRO_KOVALENKO, {
-      offerId: OFFER.CLIENT_PORTAL,
+      offerId,
     });
 
     expect(response.status).toBe(409);
     expect(response.body.error.code).toBe("OFFER_NOT_PUBLISHED");
 
     const listResponse = await listAs("STUDENT", STUDENT.DMYTRO_KOVALENKO);
+    expect(listResponse.status).toBe(200);
     expect(listResponse.body).toEqual([]);
   });
 
@@ -245,12 +251,29 @@ describe("POST /applications", () => {
   });
 
   it("utilise l'étudiant de la session et ignore tout studentId envoyé", async () => {
+    // Les deux étudiants peuvent candidater à cette offre : une mauvaise identité
+    // ne doit pas être masquée par un conflit avec une candidature du seed.
+    const ownerBefore = await listAs("STUDENT", STUDENT.DMYTRO_KOVALENKO);
+    const otherBefore = await listAs("STUDENT", STUDENT.LOUIS_CLAES);
+    expect(ownerBefore.status).toBe(200);
+    expect(otherBefore.status).toBe(200);
+
     const response = await applyAs("STUDENT", STUDENT.DMYTRO_KOVALENKO, {
       offerId: OFFER.FLEET_APP,
-      studentId: STUDENT.LUCAS_DUPONT,
+      studentId: STUDENT.LOUIS_CLAES,
     });
 
     expect(response.status).toBe(201);
     expect(response.body.offerId).toBe(OFFER.FLEET_APP);
+
+    const ownerAfter = await listAs("STUDENT", STUDENT.DMYTRO_KOVALENKO);
+    const otherAfter = await listAs("STUDENT", STUDENT.LOUIS_CLAES);
+    expect(ownerAfter.status).toBe(200);
+    expect(otherAfter.status).toBe(200);
+    expect(ownerAfter.body).toHaveLength(ownerBefore.body.length + 1);
+    expect(ownerAfter.body).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: response.body.id, offerId: OFFER.FLEET_APP }),
+    ]));
+    expect(otherAfter.body).toEqual(otherBefore.body);
   });
 });
