@@ -59,14 +59,15 @@ dans l'interface. Ma difficulté a donc été de trouver les actions de
 candidature et de consultation. Le dépôt se fait depuis « Offres » avec
 le bouton « Candidater » ; la consultation est accessible par
 « Mes candidatures » avec un compte étudiant. Lors de l'envoi avec un
-message, j'ai obtenu une confirmation. J'ai également cliqué sur une
-candidature pour en voir le détail. Ces observations sont mes résultats
-manuels rapportés ; elles ne valident pas les autres cas du protocole.
+message, j'ai obtenu une confirmation. Cette observation est un résultat
+manuel rapporté ; elle ne valide pas les autres cas du protocole.
+L'ancien bilan mentionnait aussi l'ouverture d'un détail. La relecture du
+17 novembre ne retrouve ni lien ni route de détail de candidature dans le code :
+cette mention n'est donc pas retenue comme preuve d'un comportement disponible.
 
 Limites restantes : le traitement des candidatures par un autre rôle, la
 sélection et la création du stage restent hors périmètre. Les essais
-manuels rapportés portent sur l'envoi avec message et la consultation
-d'un détail. La persistance après rechargement, le retrait et les autres
+manuels rapportés portent sur l'envoi avec message. La persistance après rechargement, le retrait et les autres
 cas du protocole ne sont pas déclarés validés manuellement.
 
 ## Fichiers modifiés et rôle
@@ -123,11 +124,11 @@ cas du protocole ne sont pas déclarés validés manuellement.
 ## Essais manuels
 
 Après avoir lancé l'application avec `npm run dev`, j'ai candidaté à une
-offre avec un message et obtenu une confirmation. J'ai ensuite cliqué sur
-une candidature pour en voir le détail. Ces résultats correspondent à mes
-observations rapportées, sans vérification supplémentaire par Codex dans
-le navigateur. Le compte, l'offre et le contenu exact du détail n'ont pas
-été précisés. Les comptes et offres du tableau constituent un protocole
+offre avec un message et obtenu une confirmation. Ce résultat correspond à mon
+observation rapportée, sans nouvelle vérification navigateur par Codex.
+Le compte et l'offre utilisés n'ont pas été précisés. La mention antérieure
+d'un écran de détail n'est pas confirmée par le code et a été retirée des preuves.
+Les comptes et offres du tableau constituent un protocole
 proposé, pas l'identification certaine des données utilisées. Les autres
 cas restent à vérifier manuellement.
 
@@ -136,7 +137,6 @@ cas restent à vérifier manuellement.
 | Candidature avec message              | Étudiant connecté ; offre 1 `PUBLISHED`                | Dans « Offres », cliquer « Candidater », saisir un message, envoyer | Candidature créée avec le message et « En cours »                                    | Confirmation d’envoi observée ; statut et contenu enregistré non vérifiés séparément |
 | Candidature sans message              | Étudiant connecté ; offre 3 `PUBLISHED`                | Cliquer « Candidater » et envoyer sans message                      | Candidature créée sans message et « En cours »                                       | À vérifier                                                                           |
 | Persistance après rechargement        | Candidature créée ou retirée                           | Actualiser « Mes candidatures »                                     | La ligne et son statut sont conservés                                                | À vérifier                                                                           |
-| Ouverture du détail d’une candidature | Compte et candidature non précisés                     | Cliquer sur une candidature pour voir son détail                    | Détail consultable                                                                   | Consultation du détail rapportée par l’étudiant ; contenu exact non précisé          |
 | Consultation et statuts               | Candidatures de démonstration existantes               | Consulter avec Lucas, Inès, Mateusz et Léa                          | Les libellés « En cours », « Retenue », « Non retenue » et « Retirée » sont affichés | À vérifier                                                                           |
 | Retrait en cours                      | Lucas, candidature 1 `IN_PROGRESS`                     | Cliquer « Retirer »                                                 | Statut « Retirée », ligne conservée, bouton absent                                   | À vérifier                                                                           |
 | Refus du retrait traité               | Mateusz ou Léa, candidature `SELECTED` ou `REJECTED`   | Appeler `DELETE /applications/:id`                                  | `409 APPLICATION_NOT_WITHDRAWABLE`, statut inchangé                                  | À vérifier                                                                           |
@@ -189,9 +189,9 @@ seulement lorsqu'elle est `IN_PROGRESS`.
    affiche [OfferTable.tsx](../frontend/src/components/OfferTable.tsx).
    [ApplicationForm.tsx](../frontend/src/components/ApplicationForm.tsx)
    recueille le message facultatif.
-2. **Requête** — le gestionnaire `handleApply` de
-   [OffersPage.tsx](../frontend/src/pages/OffersPage.tsx) appelle directement
-   `createApplication` dans [applications.service.ts](../frontend/src/services/applications.service.ts),
+2. **Requête** — depuis la relecture du 17 novembre, la page délègue l'état
+   et l'envoi au hook [useOfferApplication.ts](../frontend/src/hooks/useOfferApplication.ts),
+   qui appelle `createApplication` dans [applications.service.ts](../frontend/src/services/applications.service.ts),
    qui envoie `POST /applications` avec `offerId` et, si fourni, `message`.
 3. **Contrôles serveur** —
    [applications.controller.ts](../backend/src/controllers/applications.controller.ts)
@@ -207,8 +207,10 @@ seulement lorsqu'elle est `IN_PROGRESS`.
 5. **Réponse** — le repository retourne la ligne, le mapper
    [application.mapper.ts](../backend/src/mappers/application.mapper.ts) la
    convertit en DTO, puis le contrôleur renvoie `201`.
-6. **Affichage** — `OffersPage.tsx` met à jour son état local et affiche la
-   confirmation. La candidature est ensuite relue par `GET /applications`
+6. **Affichage** — le hook met à jour son état et la page affiche la
+   confirmation. Au retour sur la liste, il relit les candidatures et désactive
+   l'envoi pour les candidatures non retirées ; une candidature retirée permet
+   de candidater à nouveau. La candidature est ensuite relue par `GET /applications`
    dans [ApplicationsPage.tsx](../frontend/src/pages/ApplicationsPage.tsx),
    avec les statuts traduits par [labels.ts](../frontend/src/utils/labels.ts).
 
@@ -217,4 +219,10 @@ vérifie la propriété et `IN_PROGRESS`, le repository effectue une mise à jou
 conditionnelle vers `WITHDRAWN`, puis la page affiche « Retirée » et conserve
 la ligne après rechargement.
 
-generer en partie apres avoir repondu a des qst a chatgpt et l'autre partie en demandant a copilote de le completer directe
+## Aide à la rédaction et suivi
+
+Le bilan a été rédigé avec l'aide de ChatGPT à partir de réponses de l'étudiant,
+puis complété avec Copilot. Les résultats personnels rapportés sont distingués
+des contrôles automatisés et des vérifications effectuées par un agent.
+Les corrections et nouveaux contrôles du 17 novembre sont consignés dans
+[suivi-relecture.md](suivi-relecture.md), sans être attribués à la séance d'origine.

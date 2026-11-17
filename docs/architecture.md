@@ -147,3 +147,25 @@ nouvelles.
   `.js` à la compilation.
 - Le jeton est envoyé tel quel dans l'en-tête `Authorization`, sans préfixe `Bearer`.
 - Le port de l'API se règle avec `API_PORT` (et non `PORT`).
+
+## Dépôt d'une candidature depuis les offres
+
+`OffersPage` assemble les composants et conserve le filtre par période.
+`useOfferApplication` relit les candidatures de l'étudiant, gère la sélection,
+l'envoi, les erreurs et la confirmation. Il utilise `applications.service.ts`,
+qui valide le statut HTTP puis le JSON via `readJson`.
+
+Les candidatures `IN_PROGRESS`, `SELECTED` et `REJECTED` empêchent un nouvel
+envoi pour la même offre. `WITHDRAWN` ne le bloque pas. Les actions sont proposées
+après lecture des candidatures ; si celle-ci échoue, la page conserve les offres
+et affiche une erreur. Un rechargement permet de réessayer. L'état est isolé par
+session ; une réponse d'un ancien envoi ne modifie pas la session suivante.
+Le serveur reste la protection définitive contre les doublons et les accès interdits.
+
+## Exécution automatique des contrôles
+
+`.github/workflows/check.yml` exécute `npm ci` puis `npm run check` avec la version
+Node définie dans `.nvmrc`, sur Linux et Windows, lors des pushes et pull requests.
+Les tests utilisent leur base SQLite en mémoire : le workflow ne lance ni
+`npm run setup` ni une réinitialisation de base de développement.
+L'existence du workflow ne prouve pas sa réussite : consulter le résultat de la PR.
