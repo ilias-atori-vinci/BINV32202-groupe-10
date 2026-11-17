@@ -270,7 +270,7 @@ parcours navigateur personnel n'est déclaré validé par ces tests.
   `readJson`, la responsabilité des hooks, les formulaires accessibles et la
   distinction entre résultats automatisés et observations personnelles.
 - `docs/architecture.md` décrit le hook de dépôt et ses limites.
-- `.github/workflows/check.yml` lance les contrôles existants sur Linux et Windows,
+- `.github/workflows/check.yml` lance les contrôles existants sous Windows,
   pour les pushes et PR. Il est configuré, mais aucune réussite distante n'est
   annoncée avant sa véritable exécution sur GitHub.
 

@@ -165,7 +165,7 @@ Le serveur reste la protection définitive contre les doublons et les accès int
 ## Exécution automatique des contrôles
 
 `.github/workflows/check.yml` exécute `npm ci` puis `npm run check` avec la version
-Node définie dans `.nvmrc`, sur Linux et Windows, lors des pushes et pull requests.
+Node définie dans `.nvmrc`, sous Windows, lors des pushes et pull requests.
 Les tests utilisent leur base SQLite en mémoire : le workflow ne lance ni
 `npm run setup` ni une réinitialisation de base de développement.
 L'existence du workflow ne prouve pas sa réussite : consulter le résultat de la PR.

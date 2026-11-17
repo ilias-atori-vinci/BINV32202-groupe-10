@@ -186,6 +186,6 @@ de l'API se change avec `API_PORT` dans `backend/.env`.
 Après chaque séance, ajoutez dans `docs/` la conversation exportée avec l'agent
 (`conversation-1.md`, `conversation-2.md`…). En fin de projet, ajoutez `docs/bilan.md`.
 
-Le workflow `.github/workflows/check.yml` lance `npm run check` sur Linux et Windows
+Le workflow `.github/workflows/check.yml` lance `npm run check` sous Windows
 lors des pushes et pull requests. Consulter le résultat réel sur GitHub avant de
 considérer les contrôles distants comme réussis.

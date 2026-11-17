@@ -13,7 +13,7 @@ Il ne reconstitue ni une conversation Copilot, ni des observations personnelles.
 | État de candidature dans les offres | L'état local était perdu au retour sur la page | Lecture des candidatures existantes ; blocage des nouvelles candidatures non retirées, recandidature possible après retrait |
 | Architecture frontend | La page portait directement l'envoi et ses états | Extraction dans `useOfferApplication`, gestion des erreurs et isolation des sessions |
 | Guides | Statut HTTP, formulaires et preuves insuffisamment explicites | Instructions précisées et parcours du hook documenté |
-| Senseurs récurrents | Vérifications uniquement locales | Workflow GitHub Actions sur Linux et Windows, basé sur `npm run check` |
+| Senseurs récurrents | Vérifications uniquement locales | Workflow GitHub Actions sous Windows, basé sur `npm run check` |
 | Bilan de semaine 1 | Essais personnels imprécis | Limite explicitée, distinction avec les observations de Codex, méthode de relecture proposée |
 | Bilan de semaine 2 | Mention d'un détail de candidature absent de l'interface | Mention retirée des preuves ; pas d'écran ajouté hors du périmètre demandé |
 | Cahier des charges | D-11 ambiguë et liens vers des fichiers absents | Reformulation conforme à RG-01 et inventaire explicite des sources à retrouver |
@@ -29,7 +29,7 @@ avec relecture de l'API. La persistance côté serveur est contrôlée séparém
 les tests d'intégration, avec des bases en mémoire isolées.
 
 La CI est ajoutée mais n'a pas été exécutée sur GitHub pendant cette relecture.
-La réussite locale ne permet pas de déclarer les deux environnements distants validés.
+La réussite locale ne permet pas de déclarer l'environnement distant Windows validé.
 
 ## Phase 1 : éléments à retrouver, sans fabrication rétroactive
 

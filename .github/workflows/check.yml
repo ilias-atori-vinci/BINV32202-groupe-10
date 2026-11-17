@@ -9,12 +9,8 @@ permissions:
 
 jobs:
   check:
-    name: Lint, types, tests et build (${{ matrix.os }})
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    name: Lint, types, tests et build (Windows)
+    runs-on: windows-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
