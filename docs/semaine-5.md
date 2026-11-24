@@ -1,9 +1,9 @@
 # Semaine 5 — MCP et tests end-to-end avec Playwright
 
 Cette séance prépare uniquement les scénarios de recherche des offres EF-30.
-Aucun test Playwright n'est créé et aucun navigateur n'est piloté. Le périmètre
-reste documentaire et ne modifie ni le code applicatif ni la base de
-développement.
+Aucun test Playwright n'est créé. Le périmètre reste documentaire et ne modifie
+ni le code applicatif ni la base de développement. Le cas 1 a été observé dans
+un navigateur réel le 24 novembre 2026 ; le cas 2 reste à réaliser.
 
 ## Scénarios
 
@@ -20,8 +20,9 @@ Les deux cas utilisent un contexte navigateur indépendant. La base locale doit
 être conservée dans son état seedé ; `npm run db:reset` et toute modification
 de la base sont exclus.
 
-Résultats : **À réaliser**. Aucun essai, aucune observation navigateur et
-aucun résultat personnel ne sont inventés.
+Résultat du cas 1 : **réussi lors de l'observation de l'agent**.
+Résultat du cas 2 : **À réaliser**. Aucun essai, aucune observation navigateur
+ni aucune validation personnelle ne sont inventés pour le cas 2.
 
 ## MCP
 
@@ -43,8 +44,50 @@ Migration depuis l'ancien format :
 MCP fournit un canal standard pour exposer les capacités du serveur Playwright
 à l'agent. Cette configuration HTTP établit la disponibilité déclarée du serveur,
 mais elle ne prouve pas qu'il est chargé, accessible ou déjà utilisé dans une
-session future. Aucun serveur n'a été lancé ni aucun appel d'outil observé pour
-cette documentation.
+session future.
+
+### Résultat réel du scénario MCP — 24 novembre 2026
+
+**Observation de l'agent :**
+
+- L'application Gesta a été ouverte sur `http://localhost:5173`.
+- Les serveurs locaux ont été démarrés avec `npm.cmd run dev` puis arrêtés à
+  la fin de l'essai ; aucune réinitialisation ni modification de la base n'a
+  été effectuée.
+- Dmytro Kovalenko a été sélectionné sur la page de connexion de démonstration.
+- La navigation **Offres** a été ouverte.
+- La période P2 a été sélectionnée.
+- Le titre `API` a été saisi.
+- Le tableau final retournait exactement une ligne :
+  `API REST de facturation | Orbis | 2026-2027 | P2 | Publiée`.
+- Aucun autre titre d'offre n'était visible, aucun chargement persistant ni
+  message d'erreur n'était présenté.
+
+Le scénario 1 est donc observé comme réussi dans cette session de navigateur.
+Ce résultat ne couvre pas le scénario 2.
+
+**Appels d'outils Playwright observés :**
+
+1. `openBrowserPage` — action demandée : ouvrir
+   `http://localhost:5173` dans un nouvel onglet — informations retournées :
+   page Gesta ouverte, titre `Gesta`, URL locale visible.
+2. `readPage` — action demandée : lire l'état de la page de connexion —
+   informations retournées : titre `Connexion de démonstration` et bouton
+   `Dmytro Kovalenko` visible.
+3. `clickElement` — action demandée : connecter Dmytro Kovalenko, puis cliquer
+   sur le lien `Offres` — informations retournées : l'utilisateur affiché est
+   Dmytro Kovalenko, profil `Étudiant`, page `/offres` ouverte avec quatre
+   offres publiées lors du contrôle initial.
+4. `runPlaywrightCode` — action demandée : sélectionner P2, saisir `API`,
+   attendre le chargement et lire les valeurs et le tableau — informations
+   retournées : `period=P2`, `title=API`, `1 offre`, et une seule ligne
+   `API REST de facturation`.
+
+**Observation de l'étudiant :**
+
+- Aucune validation personnelle, capture réalisée par l'étudiant ou observation
+  indépendante n'est ajoutée à ce bilan. Aucun résultat personnel n'est donc
+  présenté comme vérifié.
 
 ### Lancement manuel
 
@@ -75,8 +118,10 @@ Avant une validation MCP, vérifier :
 
 Une simple présence dans `.mcp.json`, l'absence de sortie d'erreur ou la
 démarche de lancement ne constituent pas une preuve de connexion. La connexion
-est **À réaliser** jusqu'à l'observation d'un véritable appel d'outil MCP
-réussi.
+au serveur HTTP configuré sur le port `8931` reste **À réaliser** jusqu'à
+l'observation d'un appel de ce serveur réussi. En revanche, les quatre appels
+d'outils Playwright ci-dessus sont des observations réelles de la session
+navigateur.
 
 Une éventuelle session MCP devra conserver des actions et des assertions
 observables, mais ne doit jamais réinitialiser la base de développement.
@@ -110,8 +155,9 @@ HTTP Playwright porté par le port `8931` et déclaré dans `.mcp.json`, sous
 réserve que chaque cas utilise un contexte nouveau. Une suite Playwright Test
 devra ensuite être distinguée clairement de cette vérification MCP.
 
-Aucune de ces options n'a été exécutée pour écrire cette page. Le résultat
-est donc **À réaliser**.
+Aucune vérification globale `npm run check` ni aucun appel au serveur HTTP
+Playwright sur le port `8931` n'a été ajouté comme résultat automatisé pour
+cette page. Ces résultats restent donc **À réaliser**.
 
 ## Comparaison
 
@@ -120,7 +166,7 @@ est donc **À réaliser**.
 - Les tests Supertest de [backend/tests/offers.test.ts](../backend/tests/offers.test.ts)
   vérifient le contrat HTTP, notamment la combinaison titre/Période et la
   visibilité étudiante en base SQLite de test.
-- Les scénarios Playwright proposés couvriront le parcours complet :
+- Le cas 1 Playwright a couvert dans cette session le parcours complet :
   connexion de démonstration, navigation, champs contrôlés, requête au backend,
   rendu React et état visible.
 - `npm run check` vérifie le dépôt globalement ; il ne démontre pas un parcours
@@ -128,9 +174,11 @@ est donc **À réaliser**.
 
 ## Limites
 
-- Aucun navigateur réel n'a été lancé.
+- Le cas 1 a été lancé et observé dans un navigateur réel par l'agent.
+- Le cas 2 n'a pas été exécuté.
 - Aucun test end-to-end n'a été généré.
-- Aucun essai n'a été consigné comme réussi.
+- Le serveur HTTP Playwright configuré sur le port `8931` n'a pas été lancé ni
+  vérifié par un appel MCP réel dans cette documentation.
 - La base de développement n'a pas été réinitialisée ni modifiée.
 - Les données du seed doivent être vérifiées au démarrage de chaque essai
   futur ; les titres et périodes peuvent être rendus invalides par une
