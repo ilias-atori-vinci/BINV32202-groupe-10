@@ -25,15 +25,58 @@ aucun résultat personnel ne sont inventés.
 
 ## MCP
 
-Le dépôt contient une configuration workspace dans
-[.vscode/mcp.json](../.vscode/mcp.json). Elle déclare un serveur Playwright
-lancé par `npx @playwright/mcp@latest`.
+La configuration portable du dépôt est [.mcp.json](../.mcp.json). Elle utilise
+le format racine `mcpServers` et déclare une entrée HTTP Playwright vers
+`http://localhost:8931/mcp`, avec `tools: ["*"]`.
+
+Migration depuis l'ancien format :
+
+- L'ancienne entrée `.vscode/mcp.json` utilisait le format
+  workspace `servers` avec un lancement stdio `npx @playwright/mcp@latest`.
+- Cette entrée avait été conservée seule ; elle ne contenait aucun autre serveur
+  à préserver.
+- Elle a été retirée pour éviter que la même instance Playwright soit active à
+  la fois en stdio et en HTTP.
+- Le nouveau fichier racine utilise uniquement `mcpServers`; il ne mélange pas
+  la clé `servers` de l'ancien format avec `mcpServers`.
 
 MCP fournit un canal standard pour exposer les capacités du serveur Playwright
-à l'agent. Cette configuration établit la disponibilité déclarée du serveur,
+à l'agent. Cette configuration HTTP établit la disponibilité déclarée du serveur,
 mais elle ne prouve pas qu'il est chargé, accessible ou déjà utilisé dans une
-session future. Aucun essai avec l'outil MCP n'a été effectué pour cette
-documentation.
+session future. Aucun serveur n'a été lancé ni aucun appel d'outil observé pour
+cette documentation.
+
+### Lancement manuel
+
+Le serveur HTTP doit être lancé dans un terminal séparé, sans lancer ni
+réinitialiser l'application ni sa base :
+
+```powershell
+npx @playwright/mcp@latest --port 8931 --host 127.0.0.1
+```
+
+Le processus doit rester actif pendant les essais. L'application Gesta peut
+être démarrée séparément avec `npm run dev` si elle n'est pas déjà disponible,
+sans exécuter `npm run db:reset`.
+
+### Vérifications nécessaires
+
+Avant une validation MCP, vérifier :
+
+1. que le terminal du serveur affiche son écoute HTTP sur le port `8931` ;
+2. que `http://localhost:8931/mcp` répond sans erreur de protocole ;
+3. que l'entrée Playwright est chargée une seule fois après redémarrage ou
+   rechargement du client MCP ;
+4. que la liste des outils exposés comprend les outils Playwright nécessaires,
+   puis qu'un outil réel répond ;
+5. qu'un premier appel non destructif observe un navigateur réel, par exemple
+   l'ouverture de `http://localhost:5173` ou une lecture de la page ;
+6. qu'aucune modification de la base de développement n'est effectuée.
+
+Une simple présence dans `.mcp.json`, l'absence de sortie d'erreur ou la
+démarche de lancement ne constituent pas une preuve de connexion. La connexion
+est **À réaliser** jusqu'à l'observation d'un véritable appel d'outil MCP
+réussi.
 
 Une éventuelle session MCP devra conserver des actions et des assertions
 observables, mais ne doit jamais réinitialiser la base de développement.
@@ -62,10 +105,10 @@ possible avec `npm run check`, mais elle ne remplace pas un essai navigateur.
 Cette commande couvre les travaux lint, TypeScript, Vitest et builds du dépôt,
 pas les interactions Playwright avec la vraie interface.
 
-Pour les étapes Playwright ultérieures, le démarrage temporaire recommandé est
-le serveur Playwright MCP déclaré dans `.vscode/mcp.json`, sous réserve que
-chaque cas utilise un contexte nouveau. Une suite Playwright Test devra ensuite
-être distinguée clairement de cette vérification MCP.
+Pour les étapes Playwright ultérieures, le démarrage recommandé est le serveur
+HTTP Playwright porté par le port `8931` et déclaré dans `.mcp.json`, sous
+réserve que chaque cas utilise un contexte nouveau. Une suite Playwright Test
+devra ensuite être distinguée clairement de cette vérification MCP.
 
 Aucune de ces options n'a été exécutée pour écrire cette page. Le résultat
 est donc **À réaliser**.
