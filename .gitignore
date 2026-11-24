@@ -16,3 +16,8 @@ env/*.env
 # Système et éditeurs
 .DS_Store
 *.log
+
+# Caches Python des scripts de skills
+__pycache__/
+*.pyc
+*.pyo
