@@ -1,11 +1,13 @@
-# Bilan de départ — semaine 4
+# Bilan — semaine 4
 
 ## Point de départ
 
 Cette semaine commence sur la branche `feature/semaine-4-skills-tdd-recherche`.
 La vérification Git réalisée avant la rédaction indiquait un arbre de travail
 propre. Le dernier commit observé est `a1d6376 ci: limiter les verifications
-automatiques a Windows`. Aucun commit ni push n'est effectué pour ce document.
+automatiques a Windows`. Ce paragraphe décrit le point de départ historique,
+avant les commits de la séance. Les corrections de traçabilité du 24 novembre
+2026 sont distinguées en fin de document.
 
 Les consignes du dépôt, [README.md](../README.md),
 [architecture.md](architecture.md), [semaine-2.md](semaine-2.md),
@@ -101,7 +103,9 @@ Avant le code, compléter une matrice de cas pour la recherche d'offres :
 
 Les assertions devront vérifier les données retournées, les appels et les
 effets de bord, pas seulement le statut HTTP. Les nouveaux tests devront être
-écrits avant ou avec l'implémentation, puis le contrôle global sera relancé.
+écrits et exécutés avant le code applicatif, puis présentés à l'étudiant.
+L'implémentation ne doit commencer qu'après sa validation explicite. Cette règle
+décrit la méthode attendue ; elle ne prouve pas rétrospectivement son application.
 
 ### Confrontation des constats EF-32 et EF-33
 
@@ -149,20 +153,25 @@ mention `license: MIT` est présente et n'a pas été supprimée.
 
 Le script
 [coverage_map.py](../.github/skills/test-gap-audit/scripts/coverage_map.py)
-mentionné par le skill existe. La vérification syntaxique Python a réussi sans
-produire de fichier :
+mentionné par le skill existe. La commande syntaxique rapportée lors de
+l'installation était :
 
 ```text
 python -B -m py_compile .github\skills\test-gap-audit\scripts\coverage_map.py
 exit=0
 ```
 
-Le skill mentionne aussi `docs-sync-audit` dans sa section « Related Skills ».
-La vérification du dépôt ne trouve pas de dossier
-`.github/skills/docs-sync-audit/`. Cette ressource locale est donc signalée
-comme manquante ; aucun remplacement n'a été inventé ou installé. L'URL
-externe `https://github.com/specialone0007/review-skills` est conservée dans
-le skill et n'a pas été traitée comme une installation locale.
+Cette compilation explicite a généré un fichier `.pyc` dans `__pycache__`,
+malgré l'option `-B`. L'ancienne affirmation « sans produire de fichier » était
+incorrecte. Le cache avait même été ajouté à Git ; il est retiré du suivi lors
+de la relecture du 24 novembre, et des exclusions sont ajoutées à `.gitignore`.
+Une nouvelle vérification avec `ast.parse` lit le script sans écrire de cache.
+
+Le skill mentionne `docs-sync-audit` dans « Related Skills ». Il s'agit d'un
+skill associé facultatif, pas d'une dépendance nécessaire à `test-gap-audit`.
+Son absence locale ne bloque pas l'installation. Aucun remplacement n'a été
+inventé. La référence externe `https://github.com/specialone0007/review-skills`
+est conservée sans prétendre que ce contenu a été installé.
 
 Le dépôt contient par ailleurs les instructions Copilot dans
 [.github/copilot-instructions.md](../.github/copilot-instructions.md) et la
@@ -184,8 +193,9 @@ essais navigateur.
 - `python -B -m py_compile ...\coverage_map.py` : réussi ;
 - l'audit `coverage_map.py` n'a pas été lancé, conformément à la consigne.
 
-Le skill et son dossier restent non suivis par Git dans l'état observé ; cette
-vérification n'a créé ni commit ni push.
+Lors de cette vérification initiale, le skill n'était pas encore suivi par Git.
+Il a ensuite été ajouté au commit `99b324e`. Ce constat initial ne décrit donc
+pas l'état final de la branche.
 
 ### Installation du skill TDD
 
@@ -211,14 +221,12 @@ Vérifications effectuées :
 - aucune recherche par titre, test ou code applicatif n'a été modifiée ;
 - aucun commit ni push n'a été effectué.
 
-### Travail prévu
+### État après installation
 
-Identifier puis installer uniquement les skills nécessaires au travail
-demandé, en vérifiant leur portée et leur mode d'activation avant de les
-utiliser. La configuration ne devra pas remplacer les contrôles du dépôt ni
-introduire une dépendance inutile. Toute installation effective et son
-résultat seront consignés séparément ; cette section ne constitue pas une
-preuve d'installation.
+Les deux skills sont présents : `test-gap-audit` et `test-driven-development`.
+La présence des fichiers établit leur installation dans le dépôt, mais ne
+prouve pas leur chargement ni leur déclenchement automatique dans Copilot.
+Les traces de la session correspondante restent nécessaires pour cette preuve.
 
 ## Recherche EF-30 et TDD
 
@@ -229,14 +237,22 @@ en mémoire) et frontend (Vitest/Testing Library avec réponses API simulées).
 Les tests existants de recherche d'entreprises montrent des assertions
 réutilisables pour la validation du paramètre et le comportement de recherche.
 
-Un cycle TDD spécifique à EF-30 a été réalisé. Les tests rouges ont d'abord été
-préparés et exécutés avant toute modification applicative :
+L'ancien bilan rapportait un cycle TDD EF-30 avec, avant implémentation,
+22 tests backend réussis et 4 échecs, puis 22 tests frontend réussis et 2 échecs,
+ainsi qu'une validation utilisateur notée `validated`. Les sorties originales
+et l'export de cette validation ne sont pas disponibles dans les conversations
+versionnées. Ces résultats restent donc rapportés, sans être certifiés par
+la relecture du 24 novembre.
 
-- backend : 22 tests réussis et 4 échecs attendus sur les nouveaux cas ;
-- frontend : 22 tests réussis et 2 échecs attendus sur les nouveaux cas.
+Le contenu des commits ne remplace pas ces traces : `04a25db`, intitulé
+« tests avant implémentation », contient à la fois les tests ET le code
+applicatif de recherche. Le commit suivant `676090f`, intitulé « rechercher
+les offres par titre », ajoute en réalité les fichiers Tool Guardian.
+Leurs messages ne prouvent donc pas une séparation rouge/vert. L'historique
+est conservé tel quel ; aucune chronologie artificielle n'est reconstruite.
 
-Après la validation explicite de l'utilisateur (`validated`), l'implémentation
-a été ajoutée sans dépendance ni migration. Le contrat obtenu est le suivant :
+La recherche est effectivement implémentée, sans nouvelle dépendance ni
+migration pour cette fonctionnalité. Son contrat observable dans le code est :
 
 - `GET /offers?title=...`, limité au titre et insensible à la casse ;
 - espaces extérieurs ignorés, recherche vide équivalente à l'absence de filtre ;
@@ -247,10 +263,11 @@ a été ajoutée sans dépendance ni migration. Le contrat obtenu est le suivant
 - échappement des jokers SQL `%`, `_` et `\` ;
 - validation des paramètres répétés ou non textuels avec `INVALID_QUERY`.
 
-Les tests ciblés après implémentation ont réussi : 26/26 backend et 24/24
-frontend. Le test frontend d'état vide a d'abord été corrigé pour saisir
-explicitement un titre absent ; le défaut concernait le test, car une saisie
-réellement vide devait afficher `Aucune offre à afficher.`.
+Le bilan initial rapporte 26/26 tests backend ciblés et 24/24 frontend après
+implémentation, ainsi qu'une correction du test d'état vide pour saisir un
+titre absent. Ces éléments sont distingués de la nouvelle exécution complète
+du 24 novembre, consignée ci-dessous. Une recherche vide doit afficher l'état
+normal, et non être confondue avec une recherche sans correspondance.
 
 ### Vérifications globales observées
 
@@ -267,8 +284,9 @@ les tests ciblés ou la suite complète.
 
 Les fichiers de contrat associés ont également été mis à jour :
 [backend/API.md](../backend/API.md) et
-[backend/http/offers.http](../backend/http/offers.http). Aucun commit ni push
-n'a été effectué.
+[backend/http/offers.http](../backend/http/offers.http). La recherche et ses
+tests sont enregistrés dans `04a25db` ; la mention initiale « aucun commit »
+correspondait seulement au moment de rédaction intermédiaire.
 
 ### Travail restant
 
@@ -342,19 +360,44 @@ Le compte utilisé, les actions et le résultat réellement observé devront êt
 notés. Un test jsdom réussi ne sera pas présenté comme une observation
 navigateur.
 
-## Hook optionnel
+## Hook Copilot optionnel : Tool Guardian
 
-### Résultats observés
+### Installation et objectif
 
-Le hook optionnel n'a pas été ajouté. La recherche tient dans le parcours
-existant `OffersPage → useOffers → offers.service`, qui conserve déjà
-l'annulation et l'isolation des sessions. Une abstraction supplémentaire
-n'apporterait pas de bénéfice démontré pour ce périmètre.
+Les fichiers [tool-guardian.json](../.github/hooks/tool-guardian.json) et
+[guard-tool.cjs](../.github/hooks/guard-tool.cjs) sont présents et versionnés.
+Le JSON configure `preToolUse` et lance le script Node avant un appel d'outil.
+L'objectif de l'exercice est de refuser certaines suppressions simples de
+`demo-protected.txt` avant leur exécution.
 
-### Travail prévu
+Il s'agit d'un hook Copilot, pas d'un hook React ni d'un hook Git.
+Les hooks React `useOffers` et `useOfferApplication` gèrent l'interface et sont
+indépendants de cette démonstration.
 
-Réévaluer ce choix uniquement si un futur besoin introduit un délai de frappe,
-des erreurs de recherche dédiées ou un partage avec une autre page.
+### Essai rapporté et limites
+
+L'étudiant a rapporté dans cette conversation Codex que Copilot avait réussi
+à supprimer le fichier de démonstration. Cet essai ne valide donc pas la
+protection. La commande exacte, l'outil et les traces de déclenchement ne sont
+pas enregistrés dans les exports disponibles ; la cause précise n'est pas
+établie. Une installation non chargée, un protocole différent ou une forme de
+suppression non reconnue restent des pistes, pas des conclusions.
+
+Au 24 novembre, `demo-protected.txt` existe de nouveau et est suivi par Git.
+Cette présence actuelle ne prouve pas qu'un hook a empêché l'essai antérieur.
+
+Les vérifications directes du script utilisent uniquement des événements JSON
+simulés : elles n'exécutent aucune suppression. Elles permettent de distinguer
+la détection par le script du fonctionnement réel dans Copilot. Les résultats
+de cette relecture sont consignés en fin de document.
+
+### Vérification restante
+
+Dans une nouvelle session Copilot, vérifier la présence du hook dans les
+personnalisations, observer un appel inoffensif, puis une tentative de suppression
+simple du seul fichier de démonstration. Relever les traces de `preToolUse`, la
+décision et l'état final du fichier. Ne pas déclarer l'intégration réussie sans
+ces observations. Cet exercice reste optionnel.
 
 ## Limites
 
@@ -376,10 +419,11 @@ des erreurs de recherche dédiées ou un partage avec une autre page.
 
 ### Ce qui a été vérifié par l'agent
 
-- Le cycle TDD EF-30 est attesté dans la conversation exportée :
-  [conversation-1.md](conversation-1.md). Les nouveaux tests ont été observés
-  en échec avant l'implémentation, puis en réussite après le code. Les
-  résultats ciblés consignés sont 26/26 backend et 24/24 frontend.
+- La recherche EF-30 et ses tests existent dans le dépôt, mais le cycle TDD
+  n'est pas attesté par les exports versionnés. `conversation-1.md` concerne
+  le filtre de semaine 1 et ne contient pas la session EF-30. Le contenu des
+  commits ne prouve pas non plus l'exécution des tests avant le code, comme
+  expliqué dans la section TDD.
 - La confrontation des constats EF-32 et EF-33 et les tests ajoutés sont
   détaillés dans la présente page. Les assertions portent sur le résultat
   métier, la persistance, les droits et les effets de bord ; aucun test
@@ -403,34 +447,63 @@ des erreurs de recherche dédiées ou un partage avec une autre page.
 
 ### Ce qui relève de la relecture personnelle
 
-La relecture et la validation personnelles des tests ne sont pas documentées
-par une observation indépendante dans les conversations exportées. Elles ne
-doivent donc pas être présentées comme réalisées. La validation utilisateur
-mentionnée dans le récit TDD est conservée comme élément de conversation, mais
-elle ne remplace pas une nouvelle relecture personnelle explicitement
-consignée.
+L'export de la validation personnelle des tests EF-30 n'est pas disponible
+ici. Cela ne prouve pas qu'elle n'a pas eu lieu, mais empêche de la certifier
+à partir des fichiers du dépôt. Une nouvelle relecture peut être réalisée et
+datée comme telle ; elle ne remplace pas une preuve historique de validation
+avant l'implémentation. Aucune conversation n'est réécrite pour combler ce manque.
 
 Les essais navigateur n'ont pas été réalisés. Ni `npm.cmd run check`, ni les
 tests jsdom ne constituent une observation dans un navigateur réel. Les dix
 cas du protocole restent donc **À réaliser**, notamment la visibilité par
 profil, les recherches rapides et la candidature depuis la liste.
 
-### Hook et fichiers inutiles
+### Conversations et fichiers générés
 
-Le hook optionnel n'a pas été réalisé : aucun hook Git n'a été ajouté ni
-vérifié. Cette absence est volontaire et cohérente avec la décision de ne pas
-ajouter une automatisation non nécessaire au périmètre.
+Les exports disponibles sont :
 
-Le diff relu ne contient pas de modification inutile à signaler. Le fichier
-`demo-protected.txt`, conservé par la protection de l'environnement, n'a pas
-été supprimé et n'est pas une modification fonctionnelle de cette semaine.
-Il n'est pas inclus dans les changements documentés.
+- [conversation-1.md](conversation-1.md) : exploration et filtre par période
+  de semaine 1 ; ce fichier ne prouve pas le TDD EF-30 de semaine 4 ;
+- [conversation-2.md](conversation-2.md) : cadrage initial des candidatures ;
+  cet export ne prouve pas non plus le déroulé de la recherche EF-30.
 
-Les seules conversations exportées disponibles et réellement utilisées sont :
+Les exports réels de semaine 4, notamment les appels du skill, les tests rouges,
+l'accord utilisateur et l'essai Tool Guardian, restent à retrouver s'ils ont
+été conservés. Aucune conversation exportée n'a été modifiée ou reconstruite.
 
-- [conversation-1.md](conversation-1.md), analyse, implémentation et validations
-  de la recherche et du filtre ;
-- [conversation-2.md](conversation-2.md), cadrage initial des candidatures,
-  sans modification ni test exécuté dans cet export.
+Le fichier de démonstration Tool Guardian est conservé. Le cache Python `.pyc`
+est retiré du suivi Git et ignoré ; le script source reste intact.
 
-Aucune conversation exportée n'a été réécrite.
+## Relecture du 24 novembre 2026
+
+Cette correction porte sur le bilan et le suivi des fichiers générés, sans
+modification du code applicatif, des tests, des skills ou du hook fourni.
+Elle ne réalise pas les essais personnels restants ni la phase 6.
+
+### Contrôles et preuves
+
+- `git show --stat 04a25db` : le commit contient simultanément les tests
+  et le code applicatif de recherche ; son titre ne démontre pas le TDD.
+- `git show --stat 676090f` : le commit ajoute les deux fichiers Tool Guardian.
+- Lecture des exports `conversation-1.md` et `conversation-2.md` : ils
+  correspondent aux activités antérieures décrites ci-dessus.
+- `ast.parse` du script `coverage_map.py` : syntaxe valide, sans génération de cache.
+- `node --check .github/hooks/guard-tool.cjs` : syntaxe valide.
+- Simulation de `preToolUse`, via JSON transmis au script Node : suppression
+  PowerShell simple refusée (`deny`), `git status` sans décision (`{}`),
+  suppression via Python non détectée (`{}`), événement incomplet refusé.
+  Les assertions sur les quatre sorties ont réussi. Les commandes simulées
+  sont seulement du texte : aucune suppression n'a été exécutée.
+- `git rm --cached` sur le seul cache `.pyc` : retiré du suivi, sans supprimer
+  le script source ni le cache local ; `git check-ignore` confirme l'exclusion.
+- `git -c core.whitespace=cr-at-eol diff --check` : réussi.
+
+Ces vérifications ne remplacent ni un essai dans une session Copilot, ni les
+observations personnelles de l'étudiant. L'hypothèse d'un problème de chargement
+ou de protocole du hook reste à confirmer par les traces réelles.
+
+Le contrôle global exécuté pendant la vérification précédant ces corrections,
+le 24 novembre, a réussi : lint, TypeScript, 148 tests backend, 74 tests
+frontend et les deux builds, soit 222 tests réussis. Le premier essai dans
+le sandbox était bloqué par `EACCES` sur le réseau local ; la relance autorisée
+avec accès local a réussi sans modifier le code.
