@@ -244,6 +244,18 @@ et l'export de cette validation ne sont pas disponibles dans les conversations
 versionnées. Ces résultats restent donc rapportés, sans être certifiés par
 la relecture du 24 novembre.
 
+Le déroulé TDD demandé n'est pas « tests avant ou avec l'implémentation » :
+
+1. rédiger les tests qui doivent échouer ;
+2. les exécuter avant toute modification du code applicatif ;
+3. obtenir une validation explicite des tests rouges ;
+4. implémenter ensuite la fonctionnalité ;
+5. réexécuter les tests et demander, si nécessaire, la validation finale.
+
+Cette séquence est la référence attendue. Les sorties et la validation
+explicite ne sont pas disponibles pour EF-30 ; elles ne peuvent donc pas être
+présentées comme une preuve historique de TDD.
+
 Le contenu des commits ne remplace pas ces traces : `04a25db`, intitulé
 « tests avant implémentation », contient à la fois les tests ET le code
 applicatif de recherche. Le commit suivant `676090f`, intitulé « rechercher
@@ -373,15 +385,20 @@ L'objectif de l'exercice est de refuser certaines suppressions simples de
 Il s'agit d'un hook Copilot, pas d'un hook React ni d'un hook Git.
 Les hooks React `useOffers` et `useOfferApplication` gèrent l'interface et sont
 indépendants de cette démonstration.
+Les hooks Git sont des programmes locaux déclenchés par des commandes Git
+(`.git/hooks/`), tandis que les fichiers [tool-guardian.json](../.github/hooks/tool-guardian.json)
+et [guard-tool.cjs](../.github/hooks/guard-tool.cjs) configurent un hook
+Copilot Tool Guardian sous `.github/hooks/`.
 
 ### Essai rapporté et limites
 
-L'étudiant a rapporté dans cette conversation Codex que Copilot avait réussi
-à supprimer le fichier de démonstration. Cet essai ne valide donc pas la
-protection. La commande exacte, l'outil et les traces de déclenchement ne sont
-pas enregistrés dans les exports disponibles ; la cause précise n'est pas
-établie. Une installation non chargée, un protocole différent ou une forme de
-suppression non reconnue restent des pistes, pas des conclusions.
+Lors d'un essai antérieur, l'étudiant a rapporté que Copilot avait réussi à
+supprimer `demo-protected.txt`. Cette information est conservée comme un
+résultat historique rapporté, sans date précise ni export conservé dans
+conversation-1.md ou conversation-2.md. Elle ne valide pas l'intégration ni le
+chargement du Tool Guardian. La commande exacte, l'outil et les traces de
+déclenchement ne sont pas enregistrés dans les exports disponibles ; la cause
+précise n'est pas établie.
 
 Au 24 novembre, `demo-protected.txt` existe de nouveau et est suivi par Git.
 Cette présence actuelle ne prouve pas qu'un hook a empêché l'essai antérieur.
