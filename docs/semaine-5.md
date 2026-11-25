@@ -238,15 +238,24 @@ Les modifications de données concernent uniquement la base E2E dédiée.
 
 ## Vérification par défaut temporaire
 
-**À réaliser.** Aucun défaut n'a été introduit dans le code applicatif pendant
-la revue du prompt 5. La réussite des tests ne remplace pas l'exercice demandé :
-choisir un défaut minimal, observer l'échec du test à cause de ce défaut,
-restaurer le code puis observer la réussite. Ne pas confondre cet exercice
-avec une erreur de connexion, de configuration ou un échec d'installation.
+Le 25 novembre 2026, avec l'accord de l'étudiant, le prédicat SQL du titre dans
+`backend/src/repositories/offers.repository.ts` a temporairement été remplacé
+par `AND (@titlePattern IS NULL OR 1 = 1)`. Ce défaut désactivait le filtrage
+par titre tout en conservant les filtres de période, statut et visibilité.
+L'unique modification a ensuite été restaurée.
 
-Les sorties et observations devront être consignées à cette étape ; aucune
-preuve rouge/vert n'est inventée ici. Le contrôle personnel de l'étudiant et
-l'export des conversations réelles restent également distincts.
+L'assertion discriminante est celle du scénario 1 qui attend que
+`1 offre` soit visible après la recherche `API` en P2. Sans le filtre de titre,
+les autres offres publiées de P2 restent dans le résultat et cette assertion
+doit échouer. La sortie complète de l'exécution de l'étudiant n'a pas été
+transmise à l'agent : le message exact et le point d'arrêt effectif ne sont
+donc pas certifiés ici.
+
+Cette vérification porte uniquement sur la détection de ce défaut dans le
+scénario 1 et les données seedées utilisées. Elle ne démontre pas à elle seule
+la correction de toutes les recherches par titre ni les autres scénarios. Après
+restauration, une nouvelle exécution est nécessaire pour confirmer le retour au
+vert ; aucun succès après restauration n'est déclaré ici.
 
 ## Comparaison
 
