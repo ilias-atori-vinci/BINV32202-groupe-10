@@ -18,9 +18,15 @@
     "lint": "npm run lint --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "test": "npm run test --workspaces",
-    "check": "npm run lint && npm run typecheck && npm run test && npm run build"
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build",
+    "e2e:prepare": "node e2e/prepare-e2e-db.mjs",
+    "e2e:api": "npm run dev -w backend",
+    "e2e:web": "npm run dev -w frontend",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
     "concurrently": "^10.0.6"
   }
 }

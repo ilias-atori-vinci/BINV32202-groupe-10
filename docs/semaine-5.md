@@ -132,12 +132,46 @@ Playwright Test désigne le framework de tests automatisés `@playwright/test`
 avec fichiers de spécification, fixtures, configuration et exécution en ligne
 de commande. Il est distinct du serveur MCP Playwright.
 
+La configuration racine [playwright.config.ts](../playwright.config.ts)
+conserve `testDir: "./e2e"` et un seul projet Chromium. Elle utilise
+`http://127.0.0.1:5173` comme URL réelle du frontend. Playwright démarre
+explicitement le backend sur le port `3000`, puis le frontend sur le port
+`5173`; les serveurs existants ne sont pas réutilisés. Le proxy Vite cible
+également `http://localhost:3000` grâce à `API_PORT=3000`.
+
+Les tests utilisent une base SQLite dédiée
+`backend/data/e2e.db`. Le script
+[e2e/prepare-e2e-db.mjs](../e2e/prepare-e2e-db.mjs) supprime uniquement les
+fichiers de cette base E2E, puis applique les migrations et le seed dans une
+base vide. Il ne nomme jamais `backend/data/gesta.db` et ne lance pas
+`npm run db:reset`. Chaque exécution prépare donc un état reproductible. Les
+contextes Playwright isolent les sessions entre les tests.
+
+Le lanceur [`package.json`](../package.json) fournit :
+
+```text
+npm run e2e:prepare
+npm run test:e2e
+```
+
+Avant le premier lancement sur une nouvelle machine, Chromium peut être
+installé avec :
+
+```text
+npx playwright install chromium
+```
+
+L'option `npm run test:e2e -- --list` vérifie seulement la configuration et
+liste les tests sans navigateur. `npm run test:e2e` est réservé aux tests
+fonctionnels ultérieurs.
+
 À ce stade :
 
-- aucun dossier `tests/e2e` ou `e2e/*.spec.ts` n'est créé ;
-- aucune dépendance `@playwright/test` ni commande Playwright n'est ajoutée ;
-- aucune configuration Playwright Test n'est créée ;
-- aucun navigateur n'est lancé.
+- l'exemple Playwright générique a été retiré ;
+- aucun test fonctionnel Gesta n'est créé ;
+- aucun navigateur n'est lancé ;
+- les dossiers `test-results/`, `playwright-report/` et `blob-report/`
+  sont ignorés par Git.
 
 Le document [scenarios.md](../e2e/recherche-offres/scenarios.md) constitue
 l'entrée de travail future : il faudra valider explicitement les deux
