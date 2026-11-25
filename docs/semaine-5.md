@@ -1,9 +1,11 @@
 # Semaine 5 — MCP et tests end-to-end avec Playwright
 
-Cette séance prépare uniquement les scénarios de recherche des offres EF-30.
-Aucun test Playwright n'est créé. Le périmètre reste documentaire et ne modifie
-ni le code applicatif ni la base de développement. Le cas 1 a été observé dans
-un navigateur réel le 24 novembre 2026 ; le cas 2 reste à réaliser.
+Cette séance porte sur les scénarios de recherche des offres EF-30, leur
+exploration interactive et leur automatisation. Le cas 1 a été observé dans un
+navigateur réel le 24 novembre 2026. Les deux tests Playwright Test ont ensuite
+été relus, renforcés et exécutés deux fois par Codex le 25 novembre 2026, sur la
+base E2E dédiée. Le code applicatif et la base de développement sont inchangés.
+Ces exécutions ne sont pas des essais personnels de l'étudiant.
 
 ## Scénarios
 
@@ -21,8 +23,9 @@ Les deux cas utilisent un contexte navigateur indépendant. La base locale doit
 de la base sont exclus.
 
 Résultat du cas 1 : **réussi lors de l'observation de l'agent**.
-Résultat du cas 2 : **À réaliser**. Aucun essai, aucune observation navigateur
-ni aucune validation personnelle ne sont inventés pour le cas 2.
+Résultat interactif du cas 2 : **À réaliser**. Son test automatisé a réussi
+lors des deux exécutions du 25 novembre décrites ci-dessous. Aucune observation
+personnelle ni exploration par MCP n'est inventée à partir de ce résultat.
 
 ## MCP
 
@@ -43,8 +46,23 @@ Migration depuis l'ancien format :
 
 MCP fournit un canal standard pour exposer les capacités du serveur Playwright
 à l'agent. Cette configuration HTTP établit la disponibilité déclarée du serveur,
-mais elle ne prouve pas qu'il est chargé, accessible ou déjà utilisé dans une
-session future.
+mais elle ne prouve pas à elle seule qu'il est chargé ou accessible. Une
+connexion et un appel réel ont été vérifiés dans la session du 25 novembre
+2026, comme décrit ci-dessous.
+
+### Vérification de connexion MCP — 25 novembre 2026
+
+**Observation de l'agent :**
+
+- Serveur MCP utilisé : `Playwright`, configuré sur
+  `http://localhost:8931/mcp`.
+- `playwright-browser_navigate` — navigation demandée vers
+  `http://localhost:5173` — résultat retourné : URL
+  `http://localhost:5173/`, titre `Gesta`, avec un instantané de page signalé
+  par l'outil.
+- Résultat : la connexion au serveur MCP et cet appel Playwright ont réussi.
+  La page d'accueil a été ouverte ; cette vérification n'a pas exécuté le
+  parcours de recherche du scénario 1.
 
 ### Résultat réel du scénario MCP — 24 novembre 2026
 
@@ -118,10 +136,12 @@ Avant une validation MCP, vérifier :
 
 Une simple présence dans `.mcp.json`, l'absence de sortie d'erreur ou la
 démarche de lancement ne constituent pas une preuve de connexion. La connexion
-au serveur HTTP configuré sur le port `8931` reste **À réaliser** jusqu'à
-l'observation d'un appel de ce serveur réussi. En revanche, les quatre appels
-d'outils Playwright ci-dessus sont des observations réelles de la session
-navigateur.
+au serveur HTTP configuré sur le port `8931` et un appel non destructif sont
+**vérifiés** par l'observation du 25 novembre 2026 ci-dessus. La liste complète
+des outils exposés n'a pas été vérifiée dans cette observation. Les quatre
+appels d'outils Playwright du scénario du 24 novembre restent les observations
+de l'exécution complète de ce scénario, distinctes de la vérification de
+connexion du 25 novembre.
 
 Une éventuelle session MCP devra conserver des actions et des assertions
 observables, mais ne doit jamais réinitialiser la base de développement.
@@ -162,36 +182,71 @@ npx playwright install chromium
 ```
 
 L'option `npm run test:e2e -- --list` vérifie seulement la configuration et
-liste les tests sans navigateur. `npm run test:e2e` est réservé aux tests
-fonctionnels ultérieurs.
+liste les tests sans navigateur. Les tests classiques s'exécutent avec
+`npm.cmd run test:e2e`, sans serveur MCP.
 
-À ce stade :
+### Revue des tests du prompt 5 — 25 novembre 2026
 
-- l'exemple Playwright générique a été retiré ;
-- aucun test fonctionnel Gesta n'est créé ;
-- aucun navigateur n'est lancé ;
-- les dossiers `test-results/`, `playwright-report/` et `blob-report/`
-  sont ignorés par Git.
+Le fichier [recherche-offres.spec.ts](../e2e/recherche-offres/recherche-offres.spec.ts)
+contient deux tests, numérotés comme les scénarios. Les tests de Copilot avaient
+déjà des assertions sur le tableau, ses métadonnées et le message vide. La revue
+Codex a conservé ces contrôles et renforcé les points suivants :
 
-Le document [scenarios.md](../e2e/recherche-offres/scenarios.md) constitue
-l'entrée de travail future : il faudra valider explicitement les deux
-scénarios avant toute génération de test.
+- chaque test commence par une vraie connexion Dmytro dans un nouveau contexte ;
+- avant la recherche, les quatre offres publiées attendues sont visibles,
+  le titre recherché est vide et la période n'est pas filtrée. Une liste déjà
+  vide ou un seed incorrect ne suffit donc pas à faire passer le scénario 2 ;
+- les attentes réseau ciblent les vraies réponses GET des offres avec la
+  période P2 et le titre saisi ; leurs statuts doivent être 200. Aucune réponse
+  n'est simulée ou remplacée ;
+- les assertions de rendu attendent l'état final sans temporisation fixe ;
+- les lignes de données sont distinguées de l'en-tête du tableau, sans supposer
+  que la deuxième ligne de toute la page représente nécessairement l'offre ;
+- les assertions sont limitées au contenu principal. Le cas nominal exige une
+  seule ligne, le titre et les métadonnées exactes, ainsi que l'absence des
+  autres offres initialement visibles ; le cas limite exige le message exact,
+  l'absence de tableau et l'absence de chargement ou d'erreur ;
+- aucun test ne crée de candidature ni ne dépend d'une action du précédent.
+
+Les traces locales `.playwright-mcp/` sont conservées sur la machine mais
+ignorées par Git, comme les rapports et résultats Playwright déjà exclus.
+La configuration existante qui démarre Vite sur `127.0.0.1` a été conservée.
+
+### Exécutions réellement effectuées par Codex
+
+| Commande | Résultat |
+|---|---|
+| `npm.cmd run test:e2e -- --list` | Deux tests Chromium trouvés dans le fichier de recherche |
+| `npm.cmd run test:e2e` — première exécution | 2 tests réussis, 6,5 s |
+| `npm.cmd run test:e2e` — seconde exécution successive | 2 tests réussis, 6,6 s |
+| `npm.cmd run check` | Lint, TypeScript, 148 tests backend, 74 frontend et les deux builds réussis |
+| Vérification TypeScript explicite de la configuration et du fichier E2E | Réussie avec la commande ci-dessous |
+
+```powershell
+.\node_modules\.bin\tsc.cmd --noEmit --target ES2022 --module NodeNext --moduleResolution NodeNext --types node --skipLibCheck playwright.config.ts e2e/recherche-offres/recherche-offres.spec.ts
+```
+
+Les lancements Chromium ont été autorisés hors sandbox pour accéder au navigateur
+et aux serveurs locaux. Les serveurs E2E sont démarrés par Playwright et ne
+réutilisent pas une instance de développement existante. Les essais utilisent
+la vraie application, sans MCP ni mock de l'API. `npm run check` reste distinct
+des tests E2E et ne les lance pas automatiquement.
+
+Le SHA-256 de `backend/data/gesta.db` a été comparé avant et après les exécutions :
+il est inchangé (`7760E76A69CDFF3F603E12D999C64D27001FEA86A8069F5696DC3CE65BAE181B`).
+Les modifications de données concernent uniquement la base E2E dédiée.
 
 ## Vérification par défaut temporaire
 
-Dans l'état actuel, une vérification locale globale reste temporairement
-possible avec `npm run check`, mais elle ne remplace pas un essai navigateur.
-Cette commande couvre les travaux lint, TypeScript, Vitest et builds du dépôt,
-pas les interactions Playwright avec la vraie interface.
+**À réaliser.** Aucun défaut n'a été introduit dans le code applicatif pendant
+la revue du prompt 5. La réussite des tests ne remplace pas l'exercice demandé :
+choisir un défaut minimal, observer l'échec du test à cause de ce défaut,
+restaurer le code puis observer la réussite. Ne pas confondre cet exercice
+avec une erreur de connexion, de configuration ou un échec d'installation.
 
-Pour les étapes Playwright ultérieures, le démarrage recommandé est le serveur
-HTTP Playwright porté par le port `8931` et déclaré dans `.mcp.json`, sous
-réserve que chaque cas utilise un contexte nouveau. Une suite Playwright Test
-devra ensuite être distinguée clairement de cette vérification MCP.
-
-Aucune vérification globale `npm run check` ni aucun appel au serveur HTTP
-Playwright sur le port `8931` n'a été ajouté comme résultat automatisé pour
-cette page. Ces résultats restent donc **À réaliser**.
+Les sorties et observations devront être consignées à cette étape ; aucune
+preuve rouge/vert n'est inventée ici. Le contrôle personnel de l'étudiant et
+l'export des conversations réelles restent également distincts.
 
 ## Comparaison
 
@@ -209,10 +264,14 @@ cette page. Ces résultats restent donc **À réaliser**.
 ## Limites
 
 - Le cas 1 a été lancé et observé dans un navigateur réel par l'agent.
-- Le cas 2 n'a pas été exécuté.
-- Aucun test end-to-end n'a été généré.
-- Le serveur HTTP Playwright configuré sur le port `8931` n'a pas été lancé ni
-  vérifié par un appel MCP réel dans cette documentation.
+- Le cas 2 n'a pas été exploré interactivement par MCP ; son test automatisé
+  a réussi lors des deux exécutions du 25 novembre.
+- Les deux tests E2E sont présents et exécutés ; la vérification par défaut
+  temporaire reste à réaliser.
+- La connexion au serveur HTTP Playwright sur le port `8931` et l'ouverture de
+  la page d'accueil par `playwright-browser_navigate` ont été vérifiées le
+  25 novembre 2026 ; cette vérification ne constitue pas une nouvelle
+  exécution complète du scénario 1.
 - La base de développement n'a pas été réinitialisée ni modifiée.
 - Les données du seed doivent être vérifiées au démarrage de chaque essai
   futur ; les titres et périodes peuvent être rendus invalides par une

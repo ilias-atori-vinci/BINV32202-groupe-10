@@ -28,3 +28,6 @@ __pycache__/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Traces locales de Playwright MCP
+/.playwright-mcp/

@@ -35,7 +35,7 @@ export default defineConfig({
       },
     },
     {
-      command: "npm run e2e:web",
+      command: "npm run dev -w frontend -- --host 127.0.0.1",
       url: `http://127.0.0.1:${FRONTEND_PORT}`,
       reuseExistingServer: false,
       timeout: 120_000,
