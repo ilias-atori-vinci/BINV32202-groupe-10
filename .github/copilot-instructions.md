@@ -132,3 +132,18 @@ routes or response/error shapes.
   observations in reports. Never invent a conversation, manual result, or past TDD cycle.
 - `.github/workflows/check.yml` runs the existing checks on pushes and pull requests.
   A local success does not establish that the remote workflow has run successfully.
+
+## Browser verification and evidence
+
+- Run `npm run test:e2e` separately from `npm run check`. The E2E suite uses
+  Chromium, real local servers, and only `backend/data/e2e.db`; never reset the
+  development database for tests. Stop and report a port conflict rather than
+  killing an unrelated server or silently reusing it.
+- `.mcp.json` configures Playwright MCP over local HTTP. Playwright Test scripts
+  are a separate mechanism and must run without the MCP server.
+- New tests for existing behavior do not establish historical TDD. Never delete
+  validated application code or invent an earlier failing run to claim that order.
+- Preserve authentic conversation exports. Record dated student declarations
+  separately from logs and agent observations. A missing result is not a pass.
+- Do not add an Ubuntu workflow or E2E CI implicitly; the current CI runs the
+  existing `check` command on Windows. Any new CI scope needs an explicit request.

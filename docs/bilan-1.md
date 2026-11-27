@@ -1,7 +1,7 @@
 # Bilan — Séance 6
 
 - **Qu'est-ce que Copilot m'a aidé à faire ?** Il m'a aidé à comprendre l'organisation du projet, à ajouter le filtre par période et à écrire les tests. J'ai un peu appris en suivant son travail.
-- **Qu'ai-je vérifié ou corrigé moi-même ?** J'ai lancé les tests et l'application après le travail de l'IA. Les profils, périodes et résultats exacts de mes essais personnels n'ont pas été consignés ; je ne peux donc pas les déclarer tous validés.
+- **Qu'ai-je vérifié ou corrigé moi-même ?** J'ai lancé les tests et l'application après le travail de l'IA. Le 26 novembre, j'ai confirmé avoir réalisé les essais demandés, mais je ne me souviens plus de tous les résultats. Les profils, périodes et résultats individuels n'ont pas été consignés ; je ne les présente donc pas tous comme réussis.
 - **Quelle difficulté ai-je rencontrée ?** J'avais du mal à toujours suivre dans quel fichier l'agent travaillait. Cela rendait les changements plus difficiles à comprendre.
 - **Crédits IA consommés :** 8 % des crédits, selon mon relevé. Le nombre absolu de crédits n'a pas été précisé.
 
@@ -16,3 +16,12 @@ Pour mieux suivre l'agent lors des prochaines séances : demander une étape à 
 fois, ouvrir chaque fichier du diff et expliquer le parcours page → hook → service
 HTTP → API → SQL avant le commit. Il s'agit d'une méthode retenue pour la suite,
 pas d'une vérification réalisée rétroactivement.
+
+## Actualisation du 26 novembre 2026
+
+Cette confirmation personnelle a été recueillie dans le chat Codex. Les comptes
+et les nombres d'offres du tableau de `verification-seance-6.md` sont ceux des
+observations de l'agent, pas un relevé personnel reconstitué. Pour disposer d'une
+preuve détaillée actuelle, rejouer seulement les cas dont le résultat n'est plus
+mémorisé et noter le profil, la période, l'attendu et l'observé.
+Le suivi des autres semaines est dans [suivi-relecture.md](suivi-relecture.md).

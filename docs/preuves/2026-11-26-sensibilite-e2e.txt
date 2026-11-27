@@ -1,0 +1,66 @@
+Verification realisee par Codex le 26 novembre 2026.
+Ce fichier ne reconstitue pas la sortie de l essai anterieur de l etudiant.
+Sorties stdout/stderr reelles ; sequences de couleur ANSI et espaces de fin de ligne retires.
+
+Defaut temporaire : remplacer uniquement le predicat du titre par AND (@titlePattern IS NULL OR 1 = 1).
+Fichier : backend/src/repositories/offers.repository.ts
+SHA-256 avant/apres restauration : a59723eb2ed7657c235b6af69743d443accfd1258480f0cc198c793558a92224
+Restauration octet pour octet confirmee avant la seconde execution.
+Commande des deux executions : npm.cmd run test:e2e -- --grep "Scénario 1" --retries=0
+
+=== AVEC LE DEFAUT ; CODE SORTIE 1 ===
+
+> test:e2e
+> playwright test --grep Scénario 1 --retries=0
+
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › e2e\recherche-offres\recherche-offres.spec.ts:68:1 › Scénario 1 — recherche API en P2 affiche uniquement l'offre attendue
+  1) [chromium] › e2e\recherche-offres\recherche-offres.spec.ts:68:1 › Scénario 1 — recherche API en P2 affiche uniquement l'offre attendue
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('main').getByText('1 offre', { exact: true })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" getByRole('main').getByText('1 offre', { exact: true }) with timeout 5000ms
+      - waiting for getByRole('main').getByText('1 offre', { exact: true })
+
+
+      68 | test("Scénario 1 — recherche API en P2 affiche uniquement l'offre attendue", async ({ page }) => {
+      69 |   const main = await searchInP2(page, "API");
+    > 70 |   await expect(main.getByText("1 offre", { exact: true })).toBeVisible();
+         |                                                            ^
+      71 |
+      72 |   const table = main.getByRole("table");
+      73 |   const rows = table.locator("tbody").getByRole("row");
+        at C:\Users\ilias\Desktop\Cours\Bloc 3\BINV3220-1 Intelligence Artificielle pour développeurs\Projet\BINV32202-groupe-10\e2e\recherche-offres\recherche-offres.spec.ts:70:60
+
+    Error Context: test-results\recherche-offres-recherche-1b20a-uniquement-l-offre-attendue-chromium\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\recherche-offres-recherche-1b20a-uniquement-l-offre-attendue-chromium\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\recherche-offres-recherche-1b20a-uniquement-l-offre-attendue-chromium\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+  1 failed
+    [chromium] › e2e\recherche-offres\recherche-offres.spec.ts:68:1 › Scénario 1 — recherche API en P2 affiche uniquement l'offre attendue
+
+=== APRES RESTAURATION ; CODE SORTIE 0 ===
+
+> test:e2e
+> playwright test --grep Scénario 1 --retries=0
+
+
+Running 1 test using 1 worker
+
+[1/1] [chromium] › e2e\recherche-offres\recherche-offres.spec.ts:68:1 › Scénario 1 — recherche API en P2 affiche uniquement l'offre attendue
+  1 passed (10.3s)

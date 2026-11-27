@@ -1,7 +1,9 @@
 # Scénarios end-to-end — recherche des offres
 
 Ces scénarios utilisent les données de démonstration du seed et ne doivent pas
-modifier la base de développement. Ne pas exécuter `npm run db:reset`, même pour
+modifier la base de développement. L'exploration manuelle utilise les données
+locales existantes ; les tests automatisés utilisent la base dédiée `e2e.db`,
+préparée par `e2e/prepare-e2e-db.mjs`. Les données attendues sont identiques. Ne pas exécuter `npm run db:reset`, même pour
 préparer les essais. Chaque cas doit être exécuté dans un contexte navigateur
 nouveau et indépendant, avec des cookies, le stockage local et la session
 initiaux propres.
@@ -31,8 +33,8 @@ initiaux propres.
   Playwright.
 - Aucun token Gesta ni utilisateur ne doit être conservé dans le stockage local.
 - Aucun état de filtre ne doit être préchargé.
-- Vérifier que la base de développement contient le seed sans avoir exécuté une
-  réinitialisation ; ne créer, retirer ou modifier aucune candidature.
+- Vérifier que la base de l'environnement testé contient les offres nécessaires ;
+  ne pas réinitialiser la base de développement ; ne créer, retirer ou modifier aucune candidature.
 - Ouvrir `http://localhost:5173`.
 
 ### Actions exactes
@@ -88,8 +90,8 @@ initiaux propres.
   Playwright distinct de celui du cas nominal.
 - Aucun token Gesta, cookie de session, utilisateur ou filtre ne doit être
   conservé depuis le cas précédent.
-- Vérifier que la base de développement reste dans son état seedé sans exécuter
-  `npm run db:reset` ni modifier les données.
+- Vérifier les offres nécessaires dans l'environnement testé, sans exécuter
+  `npm run db:reset` ni modifier la base de développement.
 - Ouvrir `http://localhost:5173`.
 
 ### Actions exactes

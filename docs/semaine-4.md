@@ -116,25 +116,26 @@ déjà appliquées.
 
 | Cas | Test existant | Assertion utile | Manque confirmé ou constat écarté | Justification |
 |---|---|---|---|---|
-| Dépôt avec message | `crée une candidature avec un message pour un étudiant` dans [applications.test.ts:163](../backend/tests/applications.test.ts:163) | `POST 201`, message nettoyé, `IN_PROGRESS`, puis relecture par `GET` avec le même identifiant | Constat écarté | Le test prouve le contrat de réponse et la persistance. |
-| Dépôt sans message | `crée une candidature sans message` dans [applications.test.ts:189](../backend/tests/applications.test.ts:189) | `message === null`, `IN_PROGRESS`, puis relecture de l'offre, de l'identifiant et du statut | Constat renforcé, manque corrigé | L'ancien test ne relisait pas la candidature après création ; l'assertion de relecture a été ajoutée. |
-| Refus d'une offre non publiée | `refuse une offre %s conformément à RG-03` dans [applications.test.ts:210](../backend/tests/applications.test.ts:210) | `409`, code `OFFER_NOT_PUBLISHED`, puis liste vide pour `SUBMITTED`, `PENDING`, `ASSIGNED` et `ARCHIVED` | Constat écarté | Les quatre statuts et l'absence de création sont vérifiés. |
-| Refus d'un administrateur ou d'un contact | `refuse un administrateur et un contact` dans [applications.test.ts:246](../backend/tests/applications.test.ts:246) | `403` et code `FORBIDDEN` pour chaque rôle | Constat renforcé, manque corrigé | Les statuts étaient déjà testés ; les deux codes d'erreur ont été ajoutés. |
-| Doublon actif | `refuse une candidature active en doublon` dans [applications.test.ts:228](../backend/tests/applications.test.ts:228) et `refuse deux candidatures actives pour le même étudiant et la même offre` dans [constraints.test.ts:172](../backend/tests/db/constraints.test.ts:172) | code API `APPLICATION_EXISTS` et violation SQLite `UNIQUE` | Constat écarté | Le service et l'index partiel sont couverts séparément. |
-| Retrait par le propriétaire | `retire la candidature en cours de l'étudiant connecté` dans [applications.test.ts:28](../backend/tests/applications.test.ts:28) et `retire une candidature en cours et conserve le statut affiché` dans [ApplicationsPage.test.tsx:112](../frontend/tests/ApplicationsPage.test.tsx:112) | statut `WITHDRAWN` relu côté API, puis libellé `Retirée` et bouton supprimé côté interface | Constat écarté | Le résultat métier et l'affichage sont vérifiés. |
-| Retrait traité ou déjà retiré | `refuse le retrait d'une candidature %s` dans [applications.test.ts:53](../backend/tests/applications.test.ts:53) | `409 APPLICATION_NOT_WITHDRAWABLE`, puis statut initial inchangé | Constat écarté | Les cas `SELECTED`, `REJECTED` et `WITHDRAWN` sont paramétrés. |
-| Retrait par un autre étudiant | `refuse le retrait d'une candidature appartenant à un autre étudiant` dans [applications.test.ts:40](../backend/tests/applications.test.ts:40) | `403 FORBIDDEN`, puis relecture des candidatures du propriétaire sans modification | Constat écarté | L'autorisation et l'absence d'effet de bord sont prouvées. |
-| Retrait par un contact ou un administrateur | `refuse les rôles autres qu'étudiant` dans [applications.test.ts:69](../backend/tests/applications.test.ts:69) | `403` et `FORBIDDEN` pour les deux rôles | Constat écarté | Le contact, qui manquait dans l'ancien état, est maintenant testé. |
-| Retrait refusé dans l'interface | `affiche l'erreur si le retrait est refusé et conserve le statut` dans [ApplicationsPage.test.tsx:139](../frontend/tests/ApplicationsPage.test.tsx:139) | alerte `statut 409`, statut `En cours` conservé, bouton `Retirer` réactivé | Constat renforcé, manque corrigé | Aucun test frontend ne couvrait auparavant l'échec du `DELETE`; le nouveau test détecterait une disparition ou une mutation optimiste incorrecte. |
-| Recandidature après retrait | `autorise une nouvelle candidature après le retrait` dans [applications.test.ts:79](../backend/tests/applications.test.ts:79) | ancienne ligne `WITHDRAWN` et nouvelle ligne `IN_PROGRESS` avec un autre identifiant | Constat écarté | L'historique complet est relu après la nouvelle candidature. |
-| Liste personnelle et isolation API | `retourne les candidatures de l'étudiant connecté avec les informations de l'offre` et `isole les résultats entre deux étudiants` dans [applications.test.ts:101](../backend/tests/applications.test.ts:101) | métadonnées de l'offre, statuts, longueurs et listes distinctes | Constat écarté | Les données personnelles et la séparation entre étudiants sont assertions directement. |
-| Liste vide et profils interdits | `retourne une liste vide pour un étudiant sans candidature` et les tests d'accès dans [applications.test.ts:138](../backend/tests/applications.test.ts:138) | `200 []`, `403 FORBIDDEN` et `401` sans session | Constat écarté | Les états vide, interdit et non authentifié sont couverts côté API. |
-| Quatre statuts dans l'interface | `affiche les informations de l'offre et les statuts français` dans [ApplicationsPage.test.tsx:54](../frontend/tests/ApplicationsPage.test.tsx:54) | `En cours`, `Retenue`, `Non retenue` et `Retirée` présents | Constat écarté | Les quatre libellés sont explicitement recherchés. |
-| Relecture au retour sur les offres | `reconnaît une candidature %s après remontage de la page` dans [OffersPage.test.tsx:288](../frontend/tests/OffersPage.test.tsx:288) | bouton `Candidature envoyée` désactivé après démontage/remontage pour `IN_PROGRESS`, `SELECTED`, `REJECTED` | Constat écarté pour le comportement simulé | Le remontage et la relecture mockée sont testés ; cela ne prouve toutefois pas un essai navigateur avec une base réelle. |
-| Isolation au changement de session frontend | `masque les candidatures précédentes au changement de session` dans [ApplicationsPage.test.tsx:68](../frontend/tests/ApplicationsPage.test.tsx:68) et `ignore l'historique de l'ancienne session reçu en retard` dans [OffersPage.test.tsx:380](../frontend/tests/OffersPage.test.tsx:380) | ancienne donnée masquée, nouveau jeton transmis, réponse tardive ignorée | Constat écarté | Les courses entre sessions sont couvertes par des réponses simulées. |
+| Dépôt avec message | `crée une candidature avec un message pour un étudiant` dans [applications.test.ts](../backend/tests/applications.test.ts#L163) | `POST 201`, message nettoyé, `IN_PROGRESS`, puis relecture par `GET` avec le même identifiant | Constat écarté | Le test prouve le contrat de réponse et la persistance. |
+| Dépôt sans message | `crée une candidature sans message` dans [applications.test.ts](../backend/tests/applications.test.ts#L189) | `message === null`, `IN_PROGRESS`, puis relecture de l'offre, de l'identifiant et du statut | Constat renforcé, manque corrigé | L'ancien test ne relisait pas la candidature après création ; l'assertion de relecture a été ajoutée. |
+| Refus d'une offre non publiée | `refuse une offre %s conformément à RG-03` dans [applications.test.ts](../backend/tests/applications.test.ts#L215) | `409`, code `OFFER_NOT_PUBLISHED`, puis liste vide pour `SUBMITTED`, `PENDING`, `ASSIGNED` et `ARCHIVED` | Constat écarté | Les quatre statuts et l'absence de création sont vérifiés. |
+| Refus d'un administrateur ou d'un contact | `refuse un administrateur et un contact` dans [applications.test.ts](../backend/tests/applications.test.ts#L246) | `403` et code `FORBIDDEN` pour chaque rôle | Constat renforcé, manque corrigé | Les statuts étaient déjà testés ; les deux codes d'erreur ont été ajoutés. |
+| Doublon actif | `refuse une candidature active en doublon` dans [applications.test.ts](../backend/tests/applications.test.ts#L228) et `refuse deux candidatures actives pour le même étudiant et la même offre` dans [constraints.test.ts](../backend/tests/db/constraints.test.ts#L172) | code API `APPLICATION_EXISTS` et violation SQLite `UNIQUE` | Constat écarté | Le service et l'index partiel sont couverts séparément. |
+| Retrait par le propriétaire | `retire la candidature en cours de l'étudiant connecté` dans [applications.test.ts](../backend/tests/applications.test.ts#L28) et `retire une candidature en cours et conserve le statut affiché` dans [ApplicationsPage.test.tsx](../frontend/tests/ApplicationsPage.test.tsx#L112) | statut `WITHDRAWN` relu côté API, puis libellé `Retirée` et bouton supprimé côté interface | Constat écarté | Le résultat métier et l'affichage sont vérifiés. |
+| Retrait traité ou déjà retiré | `refuse le retrait d'une candidature %s` dans [applications.test.ts](../backend/tests/applications.test.ts#L57) | `409 APPLICATION_NOT_WITHDRAWABLE`, puis statut initial inchangé | Constat écarté | Les cas `SELECTED`, `REJECTED` et `WITHDRAWN` sont paramétrés. |
+| Retrait par un autre étudiant | `refuse le retrait d'une candidature appartenant à un autre étudiant` dans [applications.test.ts](../backend/tests/applications.test.ts#L40) | `403 FORBIDDEN`, puis relecture des candidatures du propriétaire sans modification | Constat écarté | L'autorisation et l'absence d'effet de bord sont prouvées. |
+| Retrait par un contact ou un administrateur | `refuse les rôles autres qu'étudiant` dans [applications.test.ts](../backend/tests/applications.test.ts#L69) | `403` et `FORBIDDEN` pour les deux rôles | Constat écarté | Le contact, qui manquait dans l'ancien état, est maintenant testé. |
+| Retrait refusé dans l'interface | `affiche l'erreur si le retrait est refusé et conserve le statut` dans [ApplicationsPage.test.tsx](../frontend/tests/ApplicationsPage.test.tsx#L140) | alerte `statut 409`, statut `En cours` conservé, bouton `Retirer` réactivé | Constat renforcé, manque corrigé | Aucun test frontend ne couvrait auparavant l'échec du `DELETE`; le nouveau test détecterait une disparition ou une mutation optimiste incorrecte. |
+| Recandidature après retrait | `autorise une nouvelle candidature après le retrait` dans [applications.test.ts](../backend/tests/applications.test.ts#L79) | ancienne ligne `WITHDRAWN` et nouvelle ligne `IN_PROGRESS` avec un autre identifiant | Constat écarté | L'historique complet est relu après la nouvelle candidature. |
+| Liste personnelle et isolation API | `retourne les candidatures de l'étudiant connecté avec les informations de l'offre` et `isole les résultats entre deux étudiants` dans [applications.test.ts](../backend/tests/applications.test.ts#L125) | métadonnées de l'offre, statuts, longueurs et listes distinctes | Constat écarté | Les données personnelles et la séparation entre étudiants sont assertions directement. |
+| Liste vide et profils interdits | `retourne une liste vide pour un étudiant sans candidature` et les tests d'accès dans [applications.test.ts](../backend/tests/applications.test.ts#L138) | `200 []`, `403 FORBIDDEN` et `401` sans session | Constat écarté | Les états vide, interdit et non authentifié sont couverts côté API. |
+| Quatre statuts dans l'interface | `affiche les informations de l'offre et les statuts français` dans [ApplicationsPage.test.tsx](../frontend/tests/ApplicationsPage.test.tsx#L54) | `En cours`, `Retenue`, `Non retenue` et `Retirée` présents | Constat écarté | Les quatre libellés sont explicitement recherchés. |
+| Relecture au retour sur les offres | `reconnaît une candidature %s après remontage de la page` dans [OffersPage.test.tsx](../frontend/tests/OffersPage.test.tsx#L383) | bouton `Candidature envoyée` désactivé après démontage/remontage pour `IN_PROGRESS`, `SELECTED`, `REJECTED` | Constat écarté pour le comportement simulé | Le remontage et la relecture mockée sont testés ; cela ne prouve toutefois pas un essai navigateur avec une base réelle. |
+| Isolation au changement de session frontend | `masque les candidatures précédentes au changement de session` dans [ApplicationsPage.test.tsx](../frontend/tests/ApplicationsPage.test.tsx#L68) et `ignore l'historique de l'ancienne session reçu en retard` dans [OffersPage.test.tsx](../frontend/tests/OffersPage.test.tsx#L474) | ancienne donnée masquée, nouveau jeton transmis, réponse tardive ignorée | Constat écarté | Les courses entre sessions sont couvertes par des réponses simulées. |
 
-Les trois renforcements ont été exécutés avant le contrôle global. Aucun défaut
-du code applicatif n'a été révélé : les tests ciblés ont réussi. Les nouveaux
+Les trois renforcements des tests EF-32/EF-33 ont été exécutés avant le contrôle
+global. Aucun défaut du code applicatif n'a été révélé par ces tests ciblés :
+ils ont réussi. Les nouveaux
 tests échoueraient concrètement si le dépôt sans message n'était pas persisté,
 si un rôle interdit renvoyait un autre code que `FORBIDDEN`, ou si un retrait
 refusé supprimait/modifiait localement la candidature ou désactivait
@@ -175,7 +176,8 @@ est conservée sans prétendre que ce contenu a été installé.
 
 Le dépôt contient par ailleurs les instructions Copilot dans
 [.github/copilot-instructions.md](../.github/copilot-instructions.md) et la
-configuration Playwright dans [.vscode/mcp.json](../.vscode/mcp.json). Les
+configuration Playwright alors présente dans `.vscode/mcp.json`, migrée depuis
+vers [.mcp.json](../.mcp.json). Les
 instructions documentent déjà les commandes de contrôle, le découpage MVVM,
 les hooks, les validations HTTP et la distinction entre tests simulés et
 essais navigateur.
@@ -241,7 +243,7 @@ L'ancien bilan rapportait un cycle TDD EF-30 avec, avant implémentation,
 22 tests backend réussis et 4 échecs, puis 22 tests frontend réussis et 2 échecs,
 ainsi qu'une validation utilisateur notée `validated`. Les sorties originales
 et l'export de cette validation ne sont pas disponibles dans les conversations
-versionnées. Ces résultats restent donc rapportés, sans être certifiés par
+versionnées. Ces résultats restent rapportés, sans être certifiés par
 la relecture du 24 novembre.
 
 Le déroulé TDD demandé n'est pas « tests avant ou avec l'implémentation » :
@@ -252,9 +254,20 @@ Le déroulé TDD demandé n'est pas « tests avant ou avec l'implémentation » 
 4. implémenter ensuite la fonctionnalité ;
 5. réexécuter les tests et demander, si nécessaire, la validation finale.
 
-Cette séquence est la référence attendue. Les sorties et la validation
-explicite ne sont pas disponibles pour EF-30 ; elles ne peuvent donc pas être
-présentées comme une preuve historique de TDD.
+Cette séquence est la référence attendue. L'étudiant a précisé le 26 novembre
+avoir relu et validé les tests EF-30 seulement après l'implémentation. La pause
+humaine demandée avant le code n'a donc pas été respectée. L'ordre effectif des
+anciennes exécutions rouges/vertes n'est pas certifié par un export : le commit
+`04a25db` contient tests et code ensemble. La relecture ultérieure des scénarios
+Playwright et l'expérience de défaut temporaire ne changent pas ce constat.
+
+La première exécution des tests E2E de semaine 5 a révélé un problème
+d'adressage Vite et une assertion de test ; après correction de la configuration
+et de l'assertion, les scénarios ont réussi individuellement et ensemble.
+L'étudiant a confirmé que ces tests correspondaient aux scénarios. C'est une
+preuve de relecture et de validation des tests E2E, pas un cycle rouge-vert
+avant l'implémentation de la recherche EF-30. Les résultats et la portée sont
+détaillés dans [semaine-5.md](semaine-5.md).
 
 Le contenu des commits ne remplace pas ces traces : `04a25db`, intitulé
 « tests avant implémentation », contient à la fois les tests ET le code
@@ -326,21 +339,24 @@ démonstration doit être activé dans `backend/.env` avec
 Les profils proposés dans ce protocole sont **Anne Leclercq
 (administratrice)** et **Dmytro Kovalenko (étudiant sans candidature)**. Les
 résultats attendus s'appuient sur les offres et périodes décrites dans
-[docs/seed.md](seed.md). La colonne « Observé » ne contient pas de résultat
-personnel : chaque essai non exécuté est explicitement marqué **À réaliser**.
+[docs/seed.md](seed.md). Les profils indiqués sont ceux du protocole proposé. Le 26 novembre, l'étudiant
+a confirmé avoir réalisé tous les essais personnels, mais ne se souvient plus de
+tous les résultats. La colonne « Observé » n'invente donc ni réussite, ni compte
+utilisé, ni valeur exacte. Les cas sans résultat mémorisé sont à rejouer pour
+obtenir un relevé détaillé actuel.
 
 | Cas | Profil | Saisie | Période | Résultat attendu | Observé |
 |---|---|---|---|---|---|
-| Fragment de titre | Anne Leclercq (administratrice) | `portail` | Toutes les périodes | L'offre `Refonte du portail client` apparaît. | **À réaliser** |
-| Casse différente | Anne Leclercq (administratrice) | `PORTAIL` | Toutes les périodes | Même résultat que `portail` : `Refonte du portail client`. | **À réaliser** |
-| Espaces périphériques | Anne Leclercq (administratrice) | `  qualité des données  ` | Toutes les périodes | Une seule offre apparaît : `Tableau de bord de qualité des données`. | **À réaliser** |
-| Expression entière | Anne Leclercq (administratrice) | `qualité des données` | Toutes les périodes | L'expression complète correspond à `Tableau de bord de qualité des données`, et non à une recherche mot par mot réordonnée. | **À réaliser** |
-| Recherche vide | Dmytro Kovalenko (étudiant) | champ vide | Toutes les périodes | La liste normale des offres accessibles s'affiche, limitée aux offres `PUBLISHED` visibles par un étudiant. | **À réaliser** |
-| Aucune correspondance | Anne Leclercq (administratrice) | `titre inexistant` | Toutes les périodes | La liste est vide et le message `Aucune offre ne correspond à la recherche.` s'affiche. | **À réaliser** |
-| Recherche avec période | Anne Leclercq (administratrice) | `API` | `P2` | `API REST de facturation` apparaît ; les offres hors `P2` ou sans correspondance sont absentes. | **À réaliser** |
-| Visibilité étudiant | Dmytro Kovalenko (étudiant) | champ vide | `P2` | Seules les offres publiées de `P2` apparaissent, notamment `Application React de gestion de flotte`, `API REST de facturation`, `Tableau de bord de qualité des données` et `Assistant conversationnel interne`. Les offres soumises, en attente ou attribuées ne sont pas affichées. | **À réaliser** |
-| Changement rapide de recherche | Anne Leclercq (administratrice) | saisir `portail`, puis remplacer rapidement par `API` | Toutes les périodes | Le résultat final correspond uniquement à `API REST de facturation` ; une réponse tardive de la recherche `portail` ne doit pas remplacer le résultat final. | **À réaliser** |
-| Changement rapide de période | Dmytro Kovalenko (étudiant) | champ vide | passer rapidement de `Toutes les périodes` à `P2`, puis à `Autre` | Le résultat final correspond à `Autre` et reste limité aux offres publiées visibles par l'étudiant ; les résultats d'une période précédente ne doivent pas réapparaître. | **À réaliser** |
+| Fragment de titre | Anne Leclercq (administratrice) | `portail` | Toutes les périodes | L'offre `Refonte du portail client` apparaît. | Réalisé selon déclaration du 26/11 ; résultat individuel non mémorisé |
+| Casse différente | Anne Leclercq (administratrice) | `PORTAIL` | Toutes les périodes | Même résultat que `portail` : `Refonte du portail client`. | Réalisé selon déclaration du 26/11 ; résultat individuel non mémorisé |
+| Espaces périphériques | Anne Leclercq (administratrice) | `  qualité des données  ` | Toutes les périodes | Une seule offre apparaît : `Tableau de bord de qualité des données`. | Réalisé selon déclaration du 26/11 ; résultat individuel non mémorisé |
+| Expression entière | Anne Leclercq (administratrice) | `qualité des données` | Toutes les périodes | L'expression complète correspond à `Tableau de bord de qualité des données`, et non à une recherche mot par mot réordonnée. | Réalisé selon déclaration du 26/11 ; résultat individuel non mémorisé |
+| Recherche vide | Dmytro Kovalenko (étudiant) | champ vide | Toutes les périodes | La liste normale des offres accessibles s'affiche, limitée aux offres `PUBLISHED` visibles par un étudiant. | Réalisé selon déclaration du 26/11 ; résultat individuel non mémorisé |
+| Aucune correspondance | Anne Leclercq (administratrice) | `titre inexistant` | Toutes les périodes | La liste est vide et le message `Aucune offre ne correspond à la recherche.` s'affiche. | Réalisé selon déclaration du 26/11 ; résultat individuel non mémorisé |
+| Recherche avec période | Anne Leclercq (administratrice) | `API` | `P2` | `API REST de facturation` apparaît ; les offres hors `P2` ou sans correspondance sont absentes. | Réalisé selon déclaration du 26/11 ; résultat individuel non mémorisé |
+| Visibilité étudiant | Dmytro Kovalenko (étudiant) | champ vide | `P2` | Seules les offres publiées de `P2` apparaissent, notamment `Application React de gestion de flotte`, `API REST de facturation`, `Tableau de bord de qualité des données` et `Assistant conversationnel interne`. Les offres soumises, en attente ou attribuées ne sont pas affichées. | Réalisé selon déclaration du 26/11 ; résultat individuel non mémorisé |
+| Changement rapide de recherche | Anne Leclercq (administratrice) | saisir `portail`, puis remplacer rapidement par `API` | Toutes les périodes | Le résultat final correspond uniquement à `API REST de facturation` ; une réponse tardive de la recherche `portail` ne doit pas remplacer le résultat final. | Réalisé selon déclaration du 26/11 ; résultat individuel non mémorisé |
+| Changement rapide de période | Dmytro Kovalenko (étudiant) | champ vide | passer rapidement de `Toutes les périodes` à `P2`, puis à `Autre` | Le résultat final correspond à `Autre` et reste limité aux offres publiées visibles par l'étudiant ; les résultats d'une période précédente ne doivent pas réapparaître. | Réalisé selon déclaration du 26/11 ; résultat individuel non mémorisé |
 
 Pour chaque ligne, attendre la fin du chargement avant de noter le résultat,
 puis renseigner la colonne « Observé » avec le profil réellement utilisé, les
@@ -351,15 +367,30 @@ d'un test Vitest en observation navigateur.
 
 ### Résultats observés
 
-`npm.cmd run check` n'a exécuté aucun navigateur. Les tests frontend actuels
-utilisent jsdom et des mocks d'API ; ils ne valident donc ni le lancement
-simultané de l'API et de Vite, ni une recherche réelle dans l'interface.
-Aucun essai navigateur réel n'a encore été exécuté après EF-30.
+Un parcours partiel de la recherche EF-30 a réellement été observé par l'agent
+le 24 novembre 2026 avec Playwright MCP : connexion de Dmytro Kovalenko,
+sélection de P2, recherche `API`, puis affichage de l'unique offre
+`API REST de facturation`. Les actions et résultats sont consignés dans
+[semaine-5.md](semaine-5.md). Ce n'est pas une observation personnelle de
+l'étudiant.
 
-### Travail prévu
+Le 25 novembre, l'agent a également vérifié la connexion au serveur MCP
+Playwright et ouvert la page d'accueil Gesta. Cet appel n'a pas exécuté le
+parcours de recherche.
 
-Après implémentation, démarrer l'application avec `npm.cmd run dev`, se
-connecter avec au moins un administrateur et un étudiant, puis vérifier :
+Ce parcours ne couvre pas les dix cas du protocole ci-dessus. En particulier,
+la recherche sans résultat, les essais avec profil administrateur, les
+changements rapides et la candidature depuis les résultats n'ont pas été
+observés interactivement. Le cas sans résultat a été couvert par les tests E2E
+automatisés, pas par une exploration MCP. `npm.cmd run check` ne lance pas de
+navigateur ; les tests frontend classiques utilisent jsdom et des réponses API
+simulées.
+
+### Essais complémentaires restant à faire
+
+Pour compléter l'observation partielle, démarrer l'application avec
+`npm.cmd run dev`, se connecter avec au moins un administrateur et un étudiant,
+puis vérifier :
 
 - saisie d'un titre et mise à jour des résultats ;
 - titre inconnu et message d'état vide ;
@@ -408,119 +439,147 @@ simulés : elles n'exécutent aucune suppression. Elles permettent de distinguer
 la détection par le script du fonctionnement réel dans Copilot. Les résultats
 de cette relecture sont consignés en fin de document.
 
-### Vérification restante
+### Déclaration personnelle et trace à conserver
 
-Dans une nouvelle session Copilot, vérifier la présence du hook dans les
-personnalisations, observer un appel inoffensif, puis une tentative de suppression
-simple du seul fichier de démonstration. Relever les traces de `preToolUse`, la
-décision et l'état final du fichier. Ne pas déclarer l'intégration réussie sans
-ces observations. Cet exercice reste optionnel.
+Le 26 novembre, l'étudiant confirme qu'après ouverture d'un nouveau chat,
+la suppression a finalement été bloquée par le hook. La commande exacte et
+les traces ne sont plus mémorisées. Cela complète, sans l'effacer, le premier
+essai où la suppression avait réussi. L'agent n'a pas vérifié indépendamment
+ce déclenchement dans Copilot.
+
+Pour obtenir une preuve enregistrée, refaire ce seul essai avec le fichier de
+démonstration, relever `preToolUse`, la décision et l'état final du fichier.
+La déclaration personnelle est conservée sans inventer ces traces. L'activité
+reste optionnelle et ne garantit pas la protection contre toutes les suppressions.
 
 ## Limites
 
 - La recherche approximative et la gestion particulière des accents restent
   hors périmètre EF-30.
-- Les essais navigateur réels restent à faire ; les résultats actuels sont
-  uniquement automatisés.
+- Un seul parcours interactif détaillé est conservé pour l'agent. L'étudiant
+  déclare avoir fait les autres essais, sans disposer de tous les résultats
+  individuels. Cette limite de preuve demeure.
 - Les résultats de `npm.cmd run check` sont locaux ; aucune réussite de la CI
   distante n'est déduite.
-- Les tests frontend simulent l'API et ne remplacent pas les essais dans un
-  navigateur réel.
+- Les tests frontend classiques simulent l'API ; les E2E et les observations
+  personnelles restent des vérifications distinctes.
 - Les essais personnels rapportés dans les bilans précédents restent
   distincts des observations réalisées cette semaine.
 - La longueur maximale de 100 caractères et le paramètre `title` sont des
   choix implémentés et documentés ; ils ne constituent pas une recherche
   approximative.
 
-## Clôture et traçabilité des preuves
+## Finalisation et traçabilité des preuves — 26 novembre 2026
 
-### Ce qui a été vérifié par l'agent
+### Audit et changements de tests
 
-- La recherche EF-30 et ses tests existent dans le dépôt, mais le cycle TDD
-  n'est pas attesté par les exports versionnés. `conversation-1.md` concerne
-  le filtre de semaine 1 et ne contient pas la session EF-30. Le contenu des
-  commits ne prouve pas non plus l'exécution des tests avant le code, comme
-  expliqué dans la section TDD.
-- La confrontation des constats EF-32 et EF-33 et les tests ajoutés sont
-  détaillés dans la présente page. Les assertions portent sur le résultat
-  métier, la persistance, les droits et les effets de bord ; aucun test
-  supplémentaire n'est justifié par les constats déjà écartés.
-- Le contrôle réellement relancé le 17 novembre 2026 est :
+La confrontation des constats EF-32 et EF-33 avec les assertions existantes
+est conservée dans le tableau de l'audit ci-dessus. Trois manques ont déjà été
+corrigés dans les tests des candidatures : relecture après dépôt sans message,
+codes `FORBIDDEN` pour administrateur/contact, et conservation du statut après
+un retrait refusé dans l'interface. Les autres constats ont été écartés car les
+tests existants vérifient déjà les résultats métier et les effets de bord.
+Cette première relecture du bilan n'avait pas ajouté d'autre test de candidature.
+La revue globale du 26 novembre complète ensuite les tests de recherche EF-30,
+comme précisé dans l'actualisation finale ; ce sont des cas différents.
 
-  ```text
-  npm.cmd run check
-  ```
+### Rouge/vert, relecture personnelle et limites
 
-  Résultat : **réussi**. Lint backend/frontend, vérifications TypeScript et
-  builds backend/frontend réussis ; 10 fichiers et 148 tests backend réussis,
-  8 fichiers et 74 tests frontend réussis, soit **222 tests réussis**.
-- Le contrôle réellement relancé est également :
+- Le rapport historique EF-30 de 22 réussites/4 échecs backend et 22
+  réussites/2 échecs frontend, ainsi que la mention `validated`, n'a pas
+  d'export ni de sortie brute disponible. Surtout, l'étudiant a précisé le
+  26 novembre avoir personnellement relu les tests seulement après le code.
+  La pause de validation humaine avant implémentation demandée par le cours
+  n'a donc pas été respectée pour cette réalisation. Une relecture tardive ou
+  l'expérience de défaut temporaire ne la reconstitue pas.
+- Une session ultérieure rapporte un échec initial des tests E2E lié à
+  l'adresse de Vite et à une assertion, puis leur réussite après correction.
+  L'étudiant a confirmé que les tests E2E correspondaient aux scénarios. Cette
+  validation porte sur Playwright Test, pas sur le TDD EF-30.
+- Le premier essai du défaut temporaire a été rapporté sans sortie exacte :
+  on ne peut pas lui attribuer avec certitude une assertion de ligne particulière.
+  La revue globale du 26 novembre a répété l'expérience et conservé sa vraie
+  sortie : l'attente du texte « 1 offre » échoue, avant le contrôle du nombre de
+  lignes. Après restauration exacte, le test réussit. C'est une nouvelle preuve
+  de sensibilité, pas un cycle TDD avant implémentation. Voir
+  [semaine-5.md](semaine-5.md) et la sortie de console liée.
+- L'observation navigateur détaillée conservée est celle de l'agent le
+  24 novembre. L'étudiant déclare le 26 novembre avoir aussi réalisé les essais,
+  sans se souvenir de tous les résultats. Sa déclaration est ajoutée séparément
+  et ne se substitue pas aux traces manquantes.
 
-  ```text
-  git -c core.whitespace=cr-at-eol diff --check
-  ```
+### Hook Tool Guardian
 
-  Résultat : **réussi**, sans sortie ni erreur.
+La configuration et le script sont présents, et la syntaxe Node ainsi qu'une
+simulation de quatre événements `preToolUse` ont été vérifiées par l'agent :
+suppression PowerShell simple refusée, `git status` sans décision, suppression
+via Python non détectée, et événement incomplet refusé. Les tests utilisent
+des entrées simulées ; aucune suppression réelle n'a été exécutée.
+L'intégration n'a pas été vérifiée indépendamment par l'agent. Le 26 novembre,
+l'étudiant confirme avoir ouvert un nouveau chat et observé ensuite une suppression
+bloquée par le hook. Cette observation personnelle complète son premier essai où
+la suppression avait réussi. La commande exacte et les traces ne sont plus
+mémorisées : elles ne sont pas inventées, et la réussite rapportée ne prouve pas
+une protection contre toutes les formes de suppression.
 
-### Ce qui relève de la relecture personnelle
+### Contrôles de la première finalisation documentaire du 26 novembre
 
-L'export de la validation personnelle des tests EF-30 n'est pas disponible
-ici. Cela ne prouve pas qu'elle n'a pas eu lieu, mais empêche de la certifier
-à partir des fichiers du dépôt. Une nouvelle relecture peut être réalisée et
-datée comme telle ; elle ne remplace pas une preuve historique de validation
-avant l'implémentation. Aucune conversation n'est réécrite pour combler ce manque.
+Les contrôles réellement exécutés pour cette révision sont consignés après
+leur exécution ci-dessous :
 
-Les essais navigateur n'ont pas été réalisés. Ni `npm.cmd run check`, ni les
-tests jsdom ne constituent une observation dans un navigateur réel. Les dix
-cas du protocole restent donc **À réaliser**, notamment la visibilité par
-profil, les recherches rapides et la candidature depuis la liste.
+- `npm.cmd run check` — **réussi le 26 novembre 2026** : lint et TypeScript
+  backend/frontend réussis ; 10 fichiers et 148 tests backend, 8 fichiers et
+  74 tests frontend réussis ; builds backend et frontend réussis. Total :
+  **222 tests réussis**.
+- `npm.cmd run test:e2e` — **réussi le 26 novembre 2026** après restauration
+  du filtre : les deux scénarios Chromium ont réussi sur la base E2E dédiée.
+- `git -c core.whitespace=cr-at-eol diff --check` — **réussi** après relecture
+  du diff, sans erreur de whitespace.
 
-### Conversations et fichiers générés
+La réussite locale ne préjuge pas du résultat de la CI distante. Ce premier
+passage documentaire n'avait modifié ni code applicatif ni test ; les ajouts
+de tests de la revue globale ultérieure du même jour sont décrits ci-dessous.
 
-Les exports disponibles sont :
+### Conversations réellement exportées
 
-- [conversation-1.md](conversation-1.md) : exploration et filtre par période
-  de semaine 1 ; ce fichier ne prouve pas le TDD EF-30 de semaine 4 ;
+Seuls les exports présents dans le dépôt sont liés ici :
+
+- [conversation-1.md](conversation-1.md) : filtre de période et travaux de
+  semaine 1 ; ne prouve ni le cycle TDD EF-30 ni une validation des tests de
+  semaine 4 ;
 - [conversation-2.md](conversation-2.md) : cadrage initial des candidatures ;
-  cet export ne prouve pas non plus le déroulé de la recherche EF-30.
+  ne prouve pas le déroulé EF-30 ni le chargement du hook Tool Guardian.
 
-Les exports réels de semaine 4, notamment les appels du skill, les tests rouges,
-l'accord utilisateur et l'essai Tool Guardian, restent à retrouver s'ils ont
-été conservés. Aucune conversation exportée n'a été modifiée ou reconstruite.
+Aucun export de la conversation de semaine 4 ou de la session Playwright de
+semaine 5 n'est présent dans `docs/`. Ces conversations ne sont ni recréées ni
+réécrites pour compléter le bilan. Les résultats agent vérifiables dans les
+fichiers du dépôt sont référencés dans [semaine-5.md](semaine-5.md).
 
-Le fichier de démonstration Tool Guardian est conservé. Le cache Python `.pyc`
-est retiré du suivi Git et ignoré ; le script source reste intact.
+La vérification du 24 novembre a aussi confirmé que le cache Python `.pyc`
+n'est plus suivi et que les exclusions sont actives. Aucun fichier temporaire
+ou nouveau fichier inutile n'est créé par cette finalisation.
 
-## Relecture du 24 novembre 2026
+## Actualisation après réponses de l'étudiant et revue globale — 26 novembre 2026
 
-Cette correction porte sur le bilan et le suivi des fichiers générés, sans
-modification du code applicatif, des tests, des skills ou du hook fourni.
-Elle ne réalise pas les essais personnels restants ni la phase 6.
+Les réponses ont été recueillies dans le chat Codex de cette relecture :
+réalisation déclarée de tous les essais, résultats individuels en partie oubliés,
+relecture des tests EF-30 seulement après l'implémentation, et suppression finalement
+bloquée par Tool Guardian dans un nouveau chat. Aucun compte, aucune date ancienne
+précise ni sortie de console manquante n'est ajouté artificiellement.
 
-### Contrôles et preuves
+La revue globale a complété les tests de recherche existants :
 
-- `git show --stat 04a25db` : le commit contient simultanément les tests
-  et le code applicatif de recherche ; son titre ne démontre pas le TDD.
-- `git show --stat 676090f` : le commit ajoute les deux fichiers Tool Guardian.
-- Lecture des exports `conversation-1.md` et `conversation-2.md` : ils
-  correspondent aux activités antérieures décrites ci-dessus.
-- `ast.parse` du script `coverage_map.py` : syntaxe valide, sans génération de cache.
-- `node --check .github/hooks/guard-tool.cjs` : syntaxe valide.
-- Simulation de `preToolUse`, via JSON transmis au script Node : suppression
-  PowerShell simple refusée (`deny`), `git status` sans décision (`{}`),
-  suppression via Python non détectée (`{}`), événement incomplet refusé.
-  Les assertions sur les quatre sorties ont réussi. Les commandes simulées
-  sont seulement du texte : aucune suppression n'a été exécutée.
-- `git rm --cached` sur le seul cache `.pyc` : retiré du suivi, sans supprimer
-  le script source ni le cache local ; `git check-ignore` confirme l'exclusion.
-- `git -c core.whitespace=cr-at-eol diff --check` : réussi.
+- backend : recherche vide équivalente à la liste normale, limite 100/101,
+  paramètre répété, caractères littéraux `%`, `_`, `\`, titre uniquement,
+  expression entière avec contre-exemple inversé, combinaison des périodes et
+  protection contre la consultation des offres d'un autre profil/déposant ;
+- frontend : combinaison titre + période, effacement de la recherche sans perdre
+  la période, retour de l'état vide et réponse tardive d'une ancienne saisie.
 
-Ces vérifications ne remplacent ni un essai dans une session Copilot, ni les
-observations personnelles de l'étudiant. L'hypothèse d'un problème de chargement
-ou de protocole du hook reste à confirmer par les traces réelles.
-
-Le contrôle global exécuté pendant la vérification précédant ces corrections,
-le 24 novembre, a réussi : lint, TypeScript, 148 tests backend, 74 tests
-frontend et les deux builds, soit 222 tests réussis. Le premier essai dans
-le sandbox était bloqué par `EACCES` sur le réseau local ; la relance autorisée
-avec accès local a réussi sans modifier le code.
+Ces tests renforcent des comportements déjà implémentés et passent sans correction
+du code métier. Ils ne sont pas présentés comme des tests écrits avant ce code.
+La nouvelle expérience de sensibilité du 26 novembre et sa sortie réelle sont dans
+[semaine-5.md](semaine-5.md). Les totaux 222 des contrôles précédents sont historiques ;
+le contrôle global après ces ajouts compte 160 tests backend et 77 frontend,
+soit 237 tests réussis. Le détail et les limites sont centralisés dans
+[suivi-relecture.md](suivi-relecture.md).
