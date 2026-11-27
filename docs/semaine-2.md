@@ -67,8 +67,9 @@ cette mention n'est donc pas retenue comme preuve d'un comportement disponible.
 
 Limites restantes : le traitement des candidatures par un autre rôle, la
 sélection et la création du stage restent hors périmètre. Les essais
-manuels rapportés portent sur l'envoi avec message. La persistance après rechargement, le retrait et les autres
-cas du protocole ne sont pas déclarés validés manuellement.
+manuels détaillés conservés portent sur l'envoi avec message. L'étudiant confirme
+le 26 novembre avoir aussi réalisé les autres essais, mais leurs résultats
+individuels ne sont plus mémorisés et ne sont pas déclarés tous réussis.
 
 ## Fichiers modifiés et rôle
 
@@ -129,22 +130,25 @@ observation rapportée, sans nouvelle vérification navigateur par Codex.
 Le compte et l'offre utilisés n'ont pas été précisés. La mention antérieure
 d'un écran de détail n'est pas confirmée par le code et a été retirée des preuves.
 Les comptes et offres du tableau constituent un protocole
-proposé, pas l'identification certaine des données utilisées. Les autres
-cas restent à vérifier manuellement.
+proposé, pas l'identification certaine des données utilisées. Le 26 novembre, l'étudiant a confirmé avoir réalisé tous les essais personnels
+demandés, sans se souvenir de tous les résultats. Les lignes sans résultat
+individuel conservé sont donc marquées comme essais déclarés réalisés et non
+comme réussites vérifiées. Les comptes de démonstration ci-dessous restent des
+préconditions proposées, pas les comptes effectivement utilisés certifiés.
 
 | Cas                                   | Préconditions                                          | Actions                                                             | Résultat attendu                                                                     | Résultat observé                                                                     |
 | ------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
 | Candidature avec message              | Étudiant connecté ; offre 1 `PUBLISHED`                | Dans « Offres », cliquer « Candidater », saisir un message, envoyer | Candidature créée avec le message et « En cours »                                    | Confirmation d’envoi observée ; statut et contenu enregistré non vérifiés séparément |
-| Candidature sans message              | Étudiant connecté ; offre 3 `PUBLISHED`                | Cliquer « Candidater » et envoyer sans message                      | Candidature créée sans message et « En cours »                                       | À vérifier                                                                           |
-| Persistance après rechargement        | Candidature créée ou retirée                           | Actualiser « Mes candidatures »                                     | La ligne et son statut sont conservés                                                | À vérifier                                                                           |
-| Consultation et statuts               | Candidatures de démonstration existantes               | Consulter avec Lucas, Inès, Mateusz et Léa                          | Les libellés « En cours », « Retenue », « Non retenue » et « Retirée » sont affichés | À vérifier                                                                           |
-| Retrait en cours                      | Lucas, candidature 1 `IN_PROGRESS`                     | Cliquer « Retirer »                                                 | Statut « Retirée », ligne conservée, bouton absent                                   | À vérifier                                                                           |
-| Refus du retrait traité               | Mateusz ou Léa, candidature `SELECTED` ou `REJECTED`   | Appeler `DELETE /applications/:id`                                  | `409 APPLICATION_NOT_WITHDRAWABLE`, statut inchangé                                  | À vérifier                                                                           |
-| Séparation entre étudiants            | Lucas et Léa ont des candidatures                      | Comparer leurs pages « Mes candidatures »                           | Chaque étudiant ne voit que ses propres lignes                                       | À vérifier                                                                           |
-| Refus d'un autre rôle                 | Compte `ADMIN` ou `CONTACT`                            | Appeler `GET`, `POST` ou `DELETE /applications`                     | `403 FORBIDDEN`, aucune modification                                                 | À vérifier                                                                           |
-| Offre non publiée                     | Étudiant connecté ; offre 2 `SUBMITTED` ou 4 `PENDING` | Appeler `POST /applications` avec l'offre concernée                 | `409 OFFER_NOT_PUBLISHED`, aucune création                                           | À vérifier                                                                           |
-| Doublon                               | Candidature active existante sur l'offre 1             | Répéter `POST /applications` pour cette offre                       | `409 APPLICATION_EXISTS`                                                             | À vérifier                                                                           |
-| Nouvelle candidature après retrait    | Ancienne candidature `WITHDRAWN`, offre encore publiée | Déposer une nouvelle candidature                                    | Nouvelle ligne `IN_PROGRESS`, ancienne ligne conservée                               | À vérifier                                                                           |
+| Candidature sans message              | Étudiant connecté ; offre 3 `PUBLISHED`                | Cliquer « Candidater » et envoyer sans message                      | Candidature créée sans message et « En cours »                                       | Déclaré réalisé le 26/11 ; résultat individuel non consigné                                                                           |
+| Persistance après rechargement        | Candidature créée ou retirée                           | Actualiser « Mes candidatures »                                     | La ligne et son statut sont conservés                                                | Déclaré réalisé le 26/11 ; résultat individuel non consigné                                                                           |
+| Consultation et statuts               | Candidatures de démonstration existantes               | Consulter avec Lucas, Inès, Mateusz et Léa                          | Les libellés « En cours », « Retenue », « Non retenue » et « Retirée » sont affichés | Déclaré réalisé le 26/11 ; résultat individuel non consigné                                                                           |
+| Retrait en cours                      | Lucas, candidature 1 `IN_PROGRESS`                     | Cliquer « Retirer »                                                 | Statut « Retirée », ligne conservée, bouton absent                                   | Déclaré réalisé le 26/11 ; résultat individuel non consigné                                                                           |
+| Refus du retrait traité               | Mateusz ou Léa, candidature `SELECTED` ou `REJECTED`   | Appeler `DELETE /applications/:id`                                  | `409 APPLICATION_NOT_WITHDRAWABLE`, statut inchangé                                  | Déclaré réalisé le 26/11 ; résultat individuel non consigné                                                                           |
+| Séparation entre étudiants            | Lucas et Léa ont des candidatures                      | Comparer leurs pages « Mes candidatures »                           | Chaque étudiant ne voit que ses propres lignes                                       | Déclaré réalisé le 26/11 ; résultat individuel non consigné                                                                           |
+| Refus d'un autre rôle                 | Compte `ADMIN` ou `CONTACT`                            | Appeler `GET`, `POST` ou `DELETE /applications`                     | `403 FORBIDDEN`, aucune modification                                                 | Déclaré réalisé le 26/11 ; résultat individuel non consigné                                                                           |
+| Offre non publiée                     | Étudiant connecté ; offre 2 `SUBMITTED` ou 4 `PENDING` | Appeler `POST /applications` avec l'offre concernée                 | `409 OFFER_NOT_PUBLISHED`, aucune création                                           | Déclaré réalisé le 26/11 ; résultat individuel non consigné                                                                           |
+| Doublon                               | Candidature active existante sur l'offre 1             | Répéter `POST /applications` pour cette offre                       | `409 APPLICATION_EXISTS`                                                             | Déclaré réalisé le 26/11 ; résultat individuel non consigné                                                                           |
+| Nouvelle candidature après retrait    | Ancienne candidature `WITHDRAWN`, offre encore publiée | Déposer une nouvelle candidature                                    | Nouvelle ligne `IN_PROGRESS`, ancienne ligne conservée                               | Déclaré réalisé le 26/11 ; résultat individuel non consigné                                                                           |
 
 Comptes de démonstration utiles : Lucas Dupont (étudiant 1), Inès Haddad
 (étudiante 2), Mateusz Kowalski (étudiant 3), Léa Mertens (étudiante 4),
@@ -166,8 +170,8 @@ Tests ajoutés ou complétés : création avec et sans message, RG-03, doublons,
 isolation entre étudiants, état vide, statuts traités, propriété du retrait,
 recandidature après retrait, migration et affichage frontend.
 
-Commandes exécutées et résultats lors de la vérification de l'état final
-par Codex (les sous-commandes sont enchaînées par `check`) :
+Résultats historiques rapportés après l'implémentation de semaine 2, avant
+les ajouts des semaines suivantes (les sous-commandes sont enchaînées par `check`) :
 
 - `npm.cmd run check` : réussi ;
 - `npm.cmd run lint` : réussi sans avertissement ;
@@ -226,3 +230,13 @@ puis complété avec Copilot. Les résultats personnels rapportés sont distingu
 des contrôles automatisés et des vérifications effectuées par un agent.
 Les corrections et nouveaux contrôles du 17 novembre sont consignés dans
 [suivi-relecture.md](suivi-relecture.md), sans être attribués à la séance d'origine.
+
+## Actualisation du 26 novembre 2026
+
+La relecture actuelle porte sur la cohérence du bilan, sans changer les choix
+métier de semaine 2. Les totaux historiques ci-dessus ne sont pas ceux de la
+version actuelle. Les contrôles actuels, les compléments de recherche et les
+déclarations personnelles sont centralisés dans
+[suivi-relecture.md](suivi-relecture.md).
+Les essais réalisés mais non documentés peuvent être rejoués et datés comme
+une nouvelle vérification ; aucun ancien résultat ni dialogue n'est reconstruit.

@@ -207,9 +207,10 @@ valident pas les cas ajoutés cette semaine.
 Les références historiques ci-dessous sont attribuées au cours **BINV2150A — Web 2**, dossier
 `BINV2150A-slides`. Les numéros correspondent aux pages de `slides-export.pdf`
 dans chaque dossier de séance. Les recommandations sont des résultats de l'audit
-initial. Ces supports ne sont pas inclus dans ce dépôt et n'ont pas été revérifiés
-pendant la relecture du 17 novembre. Les ajouts actuels aux guides sont également
-justifiés par les conventions et le code observables de Gesta.
+initial et leurs correspondances décrivent les guides de l'époque. Ces supports
+ne sont pas inclus dans le dépôt. Ils ont été retrouvés dans les cours locaux et
+les pages citées ont été relues par Codex le 26 novembre, comme détaillé ci-dessous.
+Les ajouts aux guides restent aussi justifiés par les conventions de Gesta.
 
 | Attente Web 2 et source | Guide examiné et passage | Correspondance | Écart ou recommandation |
 |---|---|---|---|
@@ -224,7 +225,7 @@ Aucune contradiction n'a été relevée dans les passages comparés. Les réglag
 Vitest, Oxlint et SQLite mémoire sont documentés comme conventions de Gesta.
 Ces références Web 2 ne suffisent pas à leur attribuer un statut d'exigence du cours.
 
-## Principaux constats à présenter oralement
+## Principaux constats de l'audit initial
 
 1. Le dépôt possède un véritable harnais : instructions Copilot, architecture,
    lint, TypeScript, tests backend/frontend, build et documentation API.
@@ -288,3 +289,30 @@ et leur dépôt, ainsi que les routes lors d'un changement de session. Aucun con
 n'a été désactivé. Les tests API ont été exécutés avec l'accès réseau local nécessaire
 à Supertest. Aucun essai navigateur n'a été réalisé pendant ce complément.
 Les résultats de la CI distante et les essais personnels restent à confirmer.
+
+## Relecture des sources Web 2 et des guides — 26 novembre 2026
+
+Les fichiers ont été retrouvés dans le cours local
+`Bloc 2/BINV2150-2 - Développement web  avancé/BINV2150A-slides/`.
+Les pages ci-dessous de `slides-export.pdf` ont été relues ; il s'agit d'une
+vérification de l'agent, pas d'une relecture personnelle reconstituée.
+
+| Source relue | Attente effectivement présente | Correspondance actuelle dans Gesta |
+|---|---|---|
+| Séance 19, p. 4, « Le modèle MVVM » | Views pour l'affichage, hooks pour état/actions, modèles/services pour les données | Les guides explicitent ces responsabilités. `useOfferApplication` porte désormais l'envoi ; les filtres de saisie restent de l'état d'interface dans la page |
+| Séance 21, pp. 8 et 14 | Couche service ; contrôler `response.ok` avant le JSON ; chargement, erreur, données | `readJson` et les guides l'explicitent. Les type guards sont une convention complémentaire de Gesta, pas une obligation déduite de ces slides |
+| Séance 02, pp. 10, 13 et 14 | Documentation Markdown des paramètres, corps et codes HTTP | `backend/API.md` documente période, titre, candidatures et erreurs ; les exemples REST restent dans `backend/http/` |
+| Séance 03, pp. 2 et 7 ; séance 24, p. 9 | Distinguer identité et autorisation ; sécurité vérifiée au serveur | Middleware et services appliquent les droits. Le mode démo est une limite pédagogique explicitement documentée |
+| Séance 12, pp. 8 et 12 | `onSubmit`, validation HTML et validation serveur indépendante | Le guide précise désormais les formulaires. `ApplicationForm` soumet le message facultatif ; le serveur valide à nouveau le corps |
+| Séance 24, p. 9 | Proxy Vite `/api` et responsabilités des couches | Le proxy et les parcours sont documentés et utilisés par les services |
+
+Les recommandations « partiellement couvertes » du tableau historique sur HTTP
+et formulaires ont donc été prises en compte dans les guides. Ce tableau ne
+signifie pas qu'elles seraient encore toutes absentes aujourd'hui. Les outils
+Vitest, Oxlint, SQLite mémoire et la CI restent des choix de Gesta.
+
+Les nombres 201 puis 214 ci-dessus correspondent à des états antérieurs, pas au
+total actuel. Le dernier contrôle complet est dans
+[suivi-relecture.md](suivi-relecture.md). Aucun nouvel essai personnel n'est
+attribué à cette semaine d'audit ; les déclarations recueillies le 26 novembre
+sont distinguées des contrôles de l'agent.

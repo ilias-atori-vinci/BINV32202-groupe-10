@@ -2,6 +2,11 @@
 
 Revue effectuée avec Codex le 22 octobre 2026, après l'implémentation de Copilot.
 
+Ce document conserve cet état historique : les nombres de tests, les fichiers
+MCP et l'état Git ci-dessous ne décrivent pas la version finale du projet.
+Depuis, MCP a été migré vers `.mcp.json` et les résultats actuels sont consignés
+dans [suivi-relecture.md](suivi-relecture.md).
+
 ## Résultat de la revue
 
 - Le filtre est facultatif, utilise les codes P1, P2 et OTHER et est appliqué dans une requête SQL paramétrée.

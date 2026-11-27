@@ -1,13 +1,20 @@
 import request from "supertest";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ADMINISTRATOR, CONTACT, OFFER, STUDENT } from "../src/db/seed/seedIds.ts";
 import type { UserKind } from "../src/models/user.ts";
 import { createTestApp, tokenFor } from "./helpers/testApp.ts";
+import { createTestDatabase } from "./helpers/testDatabase.ts";
 
 let app: ReturnType<typeof createTestApp>;
+let database: ReturnType<typeof createTestDatabase>;
 
 beforeEach(() => {
-  app = createTestApp();
+  database = createTestDatabase();
+  app = createTestApp(database);
+});
+
+afterEach(() => {
+  database.close();
 });
 
 const listOffersAs = (kind: UserKind, id: number) =>
@@ -182,10 +189,13 @@ describe("GET /offers : recherche par titre", () => {
     expect(response.body[0].title).toBe("Module de rapports PDF");
   });
 
-  it("retourne toutes les offres accessibles pour une recherche vide", async () => {
-    const response = await listOffersAsTitle("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, "   ");
+  it.each(["", "   "])("conserve la liste normale pour la recherche vide %j", async (title) => {
+    const unfiltered = await listOffersAs("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ);
+    const response = await listOffersAsTitle("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, title);
 
+    expect(unfiltered.status).toBe(200);
     expect(response.status).toBe(200);
+    expect(response.body).toEqual(unfiltered.body);
     expect(response.body).toHaveLength(10);
   });
 
@@ -221,6 +231,72 @@ describe("GET /offers : recherche par titre", () => {
       "rapports pdf",
     );
 
+    expect(response.status).toBe(200);
     expect(offerIds(response.body)).toEqual([OFFER.PDF_REPORTS]);
+    const reversed = await listOffersAsTitle("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, "pdf rapports");
+    expect(reversed.status).toBe(200);
+    expect(reversed.body).toEqual([]);
+  });
+
+  it.each([
+    [100, 200],
+    [101, 400],
+  ])("applique la limite à un titre de %i caractères", async (length, status) => {
+    const response = await listOffersAsTitle("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, "x".repeat(length));
+    expect(response.status).toBe(status);
+    if (status === 400) expect(response.body.error.code).toBe("INVALID_QUERY");
+    else expect(response.body).toEqual([]);
+  });
+
+  it("refuse un paramètre title répété au lieu de l'ignorer", async () => {
+    const response = await request(app)
+      .get("/offers?title=API&title=React")
+      .set("Authorization", tokenFor("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ));
+    expect(response.status).toBe(400);
+    expect(response.body.error.code).toBe("INVALID_QUERY");
+  });
+
+  it.each(["%", "_", "\\"])("cherche le caractère littéral %j sans élargir les résultats", async (title) => {
+    // La fixture reste dans la base en mémoire de ce test, jamais dans le seed de développement.
+    database.prepare("UPDATE offers SET title = ? WHERE id = ?")
+      .run("Stage 100% : API_v2 \\ factures", OFFER.BILLING_API);
+    const response = await listOffersAsTitle("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, title);
+    expect(response.status).toBe(200);
+    expect(offerIds(response.body)).toEqual([OFFER.BILLING_API]);
+  });
+
+  it.each(["réservations, entretiens", "Lumen Digital"])(
+    "ne cherche pas %j dans la description ou l'entreprise",
+    async (title) => {
+      const response = await listOffersAsTitle("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, title);
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([]);
+    },
+  );
+
+  it("ne révèle pas une offre non publiée dont le titre correspond", async () => {
+    const admin = await listOffersAsTitle("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ, "portail client");
+    const student = await listOffersAsTitle("STUDENT", STUDENT.LUCAS_DUPONT, "portail client");
+    expect(admin.status).toBe(200);
+    expect(offerIds(admin.body)).toEqual([OFFER.CLIENT_PORTAL]);
+    expect(student.status).toBe(200);
+    expect(student.body).toEqual([]);
+  });
+
+  it("n'élargit pas les droits d'un déposant quand le titre d'un collègue correspond", async () => {
+    const owner = await listOffersAsTitle("CONTACT", CONTACT.JULIEN_LAMBERT, "portail client");
+    const colleague = await listOffersAsTitle("CONTACT", CONTACT.CLAIRE_DUMONT, "portail client");
+    expect(owner.status).toBe(200);
+    expect(offerIds(owner.body)).toEqual([OFFER.CLIENT_PORTAL]);
+    expect(colleague.status).toBe(200);
+    expect(colleague.body).toEqual([]);
+  });
+
+  it("exclut une offre au titre correspondant si elle appartient à une autre période", async () => {
+    const response = await request(app).get("/offers")
+      .query({ title: "rapports pdf", period: "P2" })
+      .set("Authorization", tokenFor("ADMIN", ADMINISTRATOR.ANNE_LECLERCQ));
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([]);
   });
 });

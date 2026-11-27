@@ -169,3 +169,47 @@ Node définie dans `.nvmrc`, sous Windows, lors des pushes et pull requests.
 Les tests utilisent leur base SQLite en mémoire : le workflow ne lance ni
 `npm run setup` ni une réinitialisation de base de développement.
 L'existence du workflow ne prouve pas sa réussite : consulter le résultat de la PR.
+
+## Recherche par titre et périmètre de la tranche EF-30
+
+Le parcours est `OffersPage → useOffers → offers.service → GET /offers →
+offers.controller → offers.service → offers.repository`. La page conserve les
+valeurs de saisie ; le hook associe chaque chargement à la session, la période et
+le titre, puis ignore les réponses obsolètes. Le contrôleur valide les paramètres,
+le service conserve les droits et le repository combine les filtres en SQL paramétré.
+
+La recherche est une sous-chaîne du titre, insensible à la casse dans le périmètre
+retenu, avec espaces périphériques ignorés. Les mots restent une expression entière.
+La période et le titre se combinent par intersection. `%`, `_` et `\` sont du
+texte, pas des jokers saisis par l'utilisateur. Le choix projet d'une limite de
+100 caractères et du nom `title` est documenté dans `backend/API.md`.
+
+EF-30 n'est implémentée qu'en partie volontairement : les filtres entreprise/localité
+et le catalogue automatiquement borné à l'année en cours ne sont pas ajoutés par
+cette tranche. EF-31, la sélection du candidat et la création du stage ne sont pas
+déclarées réalisées par les seules pages de listes.
+
+## Écrans et critères observables des parcours réalisés
+
+| Écran / exigence | Champs et actions visibles | Résultat attendu et refus |
+|---|---|---|
+| Connexion de démonstration | Choix d'un utilisateur fictif, déconnexion / changement de profil | L'identité et le profil affichés changent ; les résultats de la session précédente ne doivent pas être réutilisés. Ce mode n'est pas une authentification de production |
+| Offres, tranche EF-30 | Recherche par titre, période Toutes/P1/P2/Autre, tableau et états chargement/erreur/vide | Seules les offres correspondant aux filtres ET aux droits sont retournées. Effacer le titre restaure la liste de la période conservée |
+| Dépôt, EF-32 / RG-03 | Action Candidater sur une offre publiée, message facultatif, envoi/annulation | Création IN_PROGRESS et confirmation ; le serveur refuse les offres non publiées, les doublons non retirés et les autres rôles |
+| Mes candidatures, EF-33 | Offre, entreprise, année, période, quatre statuts français | Un étudiant ne consulte que ses propres candidatures. Aucune route ou action de détail de candidature n'est exposée |
+| Retrait, EF-32 | Action Retirer seulement pour IN_PROGRESS | La candidature reste dans l'historique avec WITHDRAWN ; le serveur refuse un autre propriétaire ou un statut traité. Une recandidature après retrait est permise |
+
+Cette table décrit l'application actuelle et ses critères de vérification. Elle ne
+remplace ni la première version du CdC ni les décisions client à retrouver.
+
+## Tests end-to-end et MCP
+
+- `playwright.config.ts` à la racine configure Chromium et `./e2e`.
+- `e2e/prepare-e2e-db.mjs` prépare uniquement la base E2E dédiée ; les tests
+  utilisent un vrai backend et un vrai frontend et des sessions indépendantes.
+- `npm run test:e2e` est une commande distincte de `npm run check`. Le workflow
+  Windows existant ne lance pas automatiquement les E2E.
+- `.mcp.json` configure un serveur Playwright HTTP local : il expose des outils
+  à l'agent. Les scripts Playwright Test ne l'utilisent pas et n'en ont pas besoin.
+- Les sorties jsdom, API, E2E, MCP et les observations personnelles sont des
+  preuves différentes et sont nommées comme telles dans les bilans.

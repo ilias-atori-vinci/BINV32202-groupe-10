@@ -131,6 +131,68 @@ describe("OffersPage", () => {
 });
 
 
+
+describe("OffersPage : combinaison de la recherche et de la période", () => {
+  it("combine les filtres puis conserve la période quand la recherche est effacée", async () => {
+    const fetchMock = stubFetch({
+      "/api/offers?title=portail&period=P2": () => Response.json([offers[0]]),
+      "/api/offers?period=P2": () => Response.json(offers),
+      "/api/offers": () => Response.json(offers),
+    });
+    render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText("2 offres");
+    fireEvent.change(screen.getByLabelText("Période"), { target: { value: "P2" } });
+    await waitFor(() => expect(fetchMock).toHaveBeenLastCalledWith("/api/offers?period=P2", expect.anything()));
+    fireEvent.change(screen.getByLabelText("Rechercher par titre"), { target: { value: "portail" } });
+    expect(await screen.findByText("1 offre")).toBeInTheDocument();
+    expect(screen.getByText(offers[0]!.title)).toBeInTheDocument();
+    expect(screen.queryByText(offers[1]!.title)).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenLastCalledWith("/api/offers?title=portail&period=P2", expect.anything());
+    fireEvent.change(screen.getByLabelText("Rechercher par titre"), { target: { value: "" } });
+    expect(await screen.findByText("2 offres")).toBeInTheDocument();
+    expect(screen.getByLabelText("Période")).toHaveValue("P2");
+    expect(fetchMock).toHaveBeenLastCalledWith("/api/offers?period=P2", expect.anything());
+  });
+
+  it("ignore la réponse d'une recherche remplacée par une saisie plus récente", async () => {
+    let resolveOld: (value: Response) => void = () => { throw new Error("Requête absente"); };
+    const oldResponse = new Promise<Response>((resolve) => { resolveOld = resolve; });
+    vi.stubGlobal("fetch", vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("title=portail")) return oldResponse;
+      if (url.includes("title=donn")) return Promise.resolve(Response.json([offers[1]]));
+      return Promise.resolve(Response.json(offers));
+    }));
+    render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText("2 offres");
+    const search = screen.getByLabelText("Rechercher par titre");
+    fireEvent.change(search, { target: { value: "portail" } });
+    fireEvent.change(search, { target: { value: "données" } });
+    await screen.findByText("1 offre");
+    expect(screen.getByText(offers[1]!.title)).toBeInTheDocument();
+    await act(async () => { resolveOld(Response.json([offers[0]])); });
+    expect(search).toHaveValue("données");
+    expect(screen.getByText(offers[1]!.title)).toBeInTheDocument();
+    expect(screen.queryByText(offers[0]!.title)).not.toBeInTheDocument();
+  });
+
+  it("revient de l'état sans résultat à la liste normale après effacement de la saisie", async () => {
+    stubFetch({
+      "/api/offers?title=absent": () => Response.json([]),
+      "/api/offers": () => Response.json(offers),
+    });
+    render(<OffersPage user={contactUser} token="jeton" onUnauthorized={vi.fn()} />);
+    await screen.findByText("2 offres");
+    const search = screen.getByLabelText("Rechercher par titre");
+    fireEvent.change(search, { target: { value: "absent" } });
+    await screen.findByText("Aucune offre ne correspond à la recherche.");
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    fireEvent.change(search, { target: { value: "" } });
+    expect(await screen.findByText("2 offres")).toBeInTheDocument();
+    expect(screen.queryByText("Aucune offre ne correspond à la recherche.")).not.toBeInTheDocument();
+  });
+});
+
 describe("OffersPage : fiabilité du filtre", () => {
   it.each([adminUser, studentUser])("affiche les réponses des quatre choix pour $kind", async (user) => {
     stubFetch({

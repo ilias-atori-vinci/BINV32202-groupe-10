@@ -427,3 +427,12 @@ Les références § de ce document sont conservées, mais ne constituent pas une
 vérification de ces sources. Voir [suivi-relecture.md](suivi-relecture.md) pour
 les limites de traçabilité et les compléments proposés, sans modification des
 décisions client ni ajout d'exigence métier.
+
+## Note de lecture de la version développée — 26 novembre 2026
+
+Les [parcours et écrans effectivement réalisés](architecture.md#écrans-et-critères-observables-des-parcours-réalisés)
+complètent la lecture technique de ce CdC, sans ajouter de décision client.
+La recherche par titre et les candidatures correspondent à des tranches du
+périmètre global, pas à l'implémentation de toutes les exigences. Les preuves de
+rédaction et de critique personnelles de phase 1 restent à retrouver ; le présent
+CdC de développement ne leur est pas substitué.

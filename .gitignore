@@ -21,3 +21,13 @@ env/*.env
 __pycache__/
 *.pyc
 *.pyo
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Traces locales de Playwright MCP
+/.playwright-mcp/
